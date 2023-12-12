@@ -1,8 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
-import { Inject, ValidationPipe } from '@nestjs/common'
+import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config';
+
 const expressApp = require('express')();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp), { cors: true });
