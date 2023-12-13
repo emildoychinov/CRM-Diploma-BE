@@ -3,11 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ClientController } from './client/client.controller';
 import { ClientModule } from './client/client.module';
 import { OperatorModule } from './operator/operator.module';
 import { UserModule } from './user/user.module';
-import { ClientService } from './client/client.service';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -23,15 +22,16 @@ import { ClientService } from './client/client.service';
         username: configService.get<string>('DB_USER'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [],
-        synchronize: false,
+        entities: ['dist/**/*.entity{.ts,.js}'],
+        synchronize: true,
       }),
     }),
     ClientModule,
     OperatorModule,
     UserModule,
+    AuthModule,
   ],
-  controllers: [AppController, ClientController],
-  providers: [AppService, ClientService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

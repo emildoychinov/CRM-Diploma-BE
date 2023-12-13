@@ -1,7 +1,9 @@
 import { Operator } from "src/operator/entities/operator.entity";
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn, JoinColumn, Unique } from "typeorm";
 
 @Entity()
+@Unique(['username'])
+@Unique(['email'])
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
@@ -16,5 +18,6 @@ export class User {
     password: string;
 
     @OneToOne(() => Operator, (operator) => operator.user)
-    operator: Operator
+    @JoinColumn({ name: 'operator_id' })
+    operator: Operator;
 }

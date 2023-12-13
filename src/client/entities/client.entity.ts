@@ -1,7 +1,8 @@
 import { Operator } from "src/operator/entities/operator.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity()
+@Unique(['name'])
 export class Client {
     @PrimaryGeneratedColumn()
     id: number;
@@ -10,5 +11,5 @@ export class Client {
     name: string;
 
     @OneToMany(() => Operator, (operator) => operator.client)
-        operators: Operator[];
+    operators: Operator[];
 }

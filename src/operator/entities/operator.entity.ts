@@ -1,6 +1,6 @@
 import { Client } from "src/client/entities/client.entity";
 import { User } from "src/user/entities/user.entity";
-import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Operator {
@@ -11,9 +11,10 @@ export class Operator {
     permissions: string;
     
     @ManyToOne(() => Client, (client) => client.operators)
+    @JoinColumn({ name: 'client_id' })
     client: Client;
 
     @OneToOne(() => User, (user) => user.operator)
+    @JoinColumn({ name: 'user_id' })
     user: User;
-    
 }
