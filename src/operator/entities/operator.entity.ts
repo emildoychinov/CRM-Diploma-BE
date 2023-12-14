@@ -2,11 +2,14 @@ import { Client } from "src/client/entities/client.entity";
 import { User } from "src/user/entities/user.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
+
+//TODO: 
 @Entity()
 export class Operator {
     @PrimaryGeneratedColumn()
     id: number;
-
+    
+    //TODO: move permissions to separate entity
     @Column()
     permissions: string;
     
