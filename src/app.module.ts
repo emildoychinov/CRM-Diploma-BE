@@ -7,6 +7,8 @@ import { ClientModule } from './client/client.module';
 import { OperatorModule } from './operator/operator.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { TransformInterceptor } from './transform/transform.interceptor';
 
 @Module({
   imports: [
@@ -32,6 +34,12 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
+    },
+  ],
 })
 export class AppModule {}
