@@ -11,5 +11,6 @@ import { OperatorModule } from 'src/operator/operator.module';
   imports: [ConfigModule, OperatorModule, TypeOrmModule.forFeature([User, Operator])],
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService]
 })
 export class UserModule {}

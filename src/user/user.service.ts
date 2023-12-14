@@ -28,16 +28,23 @@ export class UserService {
     return `This action returns all user`;
   }
 
-  async findOne(id: number) {
+  findByEmail(email: string){
+    return this.userRepository
+    .createQueryBuilder('user')
+    .leftJoinAndSelect('user.operator', 'operator')
+    .where('user.email = :email', { email })
+    .getOne();
+  }
+  async findById(id: number) {
     return this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.operator', 'operator') // Load the operator relation
+      .leftJoinAndSelect('user.operator', 'operator')
       .where('user.id = :id', { id })
       .getOne();
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.findOne(id);
+    const user = await this.findById(id);
     if(user){
       if(updateUserDto.operator){
         const userOperator = await this.operatorService.findOne(updateUserDto.operator.id as number);
@@ -45,7 +52,6 @@ export class UserService {
           const {operator, email, password, ...sanitizedUser} = user;
           user.operator = userOperator;
           userOperator.user = sanitizedUser as User;
-          console.log(sanitizedUser);
           await this.operatorRepository.save(userOperator);
         }else{
           throw new Error('Cannot assign user to operator already associated with another user')
