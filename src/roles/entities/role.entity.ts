@@ -1,6 +1,6 @@
 import { Operator } from "src/operator/entities/operator.entity";
 import { Permission } from "src/permissions/entities/permission.entity";
-import { Column, Entity, JoinColumn, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Role {
@@ -11,10 +11,9 @@ export class Role {
     name: string;
 
     @ManyToMany(() => Permission, (permission) => permission.roles, {eager: true, nullable: true})
-    @JoinColumn()
+    @JoinTable()
     permissions?: Permission[];
 
     @ManyToMany(() => Operator, (operator) => operator.roles, {nullable: true})
-    @JoinColumn()
     operators?: Operator[];
 }

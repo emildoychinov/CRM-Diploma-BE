@@ -25,6 +25,7 @@ export class OperatorService {
       .createQueryBuilder('operator')
       .leftJoinAndSelect('operator.user', 'user')
       .leftJoinAndSelect('operator.client', 'client')
+      .leftJoinAndSelect('operator.roles', 'roles')
       .where('operator.id = :id', { id })
       .getOne();
   }

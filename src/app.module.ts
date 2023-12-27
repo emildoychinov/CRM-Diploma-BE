@@ -11,6 +11,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './transform/transform.interceptor';
 import { PermissionsModule } from './permissions/permissions.module';
 import { RolesModule } from './roles/roles.module';
+import { CaslModule } from './casl/casl.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { RolesModule } from './roles/roles.module';
     AuthModule,
     PermissionsModule,
     RolesModule,
+    CaslModule,
   ],
   controllers: [AppController],
   providers: [
