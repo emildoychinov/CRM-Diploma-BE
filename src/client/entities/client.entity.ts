@@ -7,9 +7,9 @@ export class Client {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({nullable: false})
     name: string;
 
-    @OneToMany(() => Operator, (operator) => operator.client)
-    operators: Operator[];
+    @OneToMany(() => Operator, (operator) => operator.client, {nullable: true})
+    operators?: Operator[];
 }

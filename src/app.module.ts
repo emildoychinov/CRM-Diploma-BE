@@ -9,6 +9,8 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './transform/transform.interceptor';
+import { PermissionsModule } from './permissions/permissions.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { TransformInterceptor } from './transform/transform.interceptor';
     OperatorModule,
     UserModule,
     AuthModule,
+    PermissionsModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [

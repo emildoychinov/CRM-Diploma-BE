@@ -9,19 +9,19 @@ export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({nullable: false})
     username: string;
    
     @Exclude()
-    @Column()
+    @Column({nullable: false})
     email: string;
 
     @Exclude()
-    @Column()
+    @Column({nullable: false})
     password: string;
 
     
-    @OneToOne(() => Operator, (operator) => operator.user, {nullable: true})
+    @OneToOne(() => Operator, (operator) => operator.user, {eager: true, nullable: true})
     @JoinColumn({ name: 'operator_id' })
-    operator: Operator;
+    operator?: Operator;
 }

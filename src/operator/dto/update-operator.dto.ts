@@ -3,6 +3,7 @@ import { CreateOperatorDto } from './create-operator.dto';
 import { Client } from 'src/client/entities/client.entity';
 import { User } from 'src/user/entities/user.entity';
 import { IsOptional, IsString } from 'class-validator';
+import { Role } from 'src/roles/entities/role.entity';
 
 export class UpdateOperatorDto extends PartialType(CreateOperatorDto) {
 
@@ -10,7 +11,6 @@ export class UpdateOperatorDto extends PartialType(CreateOperatorDto) {
     public readonly client?: Client;
     @IsOptional()
     public readonly user?: User;
-    @IsString()
     @IsOptional()
-    public readonly permissions?: string;
+    public readonly roles?: Role[];
 }

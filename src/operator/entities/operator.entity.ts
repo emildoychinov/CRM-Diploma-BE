@@ -1,6 +1,7 @@
 import { Client } from "src/client/entities/client.entity";
+import { Role } from "src/roles/entities/role.entity";
 import { User } from "src/user/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
 //TODO: 
@@ -9,15 +10,15 @@ export class Operator {
     @PrimaryGeneratedColumn()
     id: number;
     
-    //TODO: move permissions to separate entity
-    @Column()
-    permissions: string;
-    
-    @ManyToOne(() => Client, (client) => client.operators)
+    @ManyToOne(() => Client, (client) => client.operators, {nullable: true})
     @JoinColumn({ name: 'client_id' })
-    client: Client;
+    client?: Client;
 
-    @OneToOne(() => User, (user) => user.operator)
+    @OneToOne(() => User, (user) => user.operator, {nullable: true})
     @JoinColumn({ name: 'user_id' })
-    user: User;
+    user?: User;
+
+    @ManyToMany(() => Role, (role) => role.operators, {nullable: true})
+    @JoinColumn()
+    roles?: Role[];
 }
