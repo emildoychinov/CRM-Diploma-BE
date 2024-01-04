@@ -1,4 +1,5 @@
 import { Operator } from "src/operator/entities/operator.entity";
+import { Role } from "src/roles/entities/role.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity()
@@ -12,4 +13,7 @@ export class Client {
 
     @OneToMany(() => Operator, (operator) => operator.client, {nullable: true})
     operators?: Operator[];
+
+    @OneToMany(() => Role, (role) => role.client, {nullable: true})
+    roles?: Role[];
 }

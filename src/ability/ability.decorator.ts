@@ -1,7 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-
-export const CHECK_ABILITY = 'check_ability';
-
+import { CHECK_ABILITY } from 'src/constants';
 export interface RequiredRule {
   action: string;
   subject: string;

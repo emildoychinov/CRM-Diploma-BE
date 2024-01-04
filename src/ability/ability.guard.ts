@@ -6,7 +6,7 @@ import { Operator } from 'src/operator/entities/operator.entity';
 import { Permission } from 'src/permissions/entities/permission.entity';
 import { Role } from 'src/roles/entities/role.entity';
 import { Repository } from 'typeorm';
-import { RequiredRule, CHECK_ABILITY } from './ability.decorator';
+import { RequiredRule } from './ability.decorator';
 import {
   subject,
   RawRuleOf,
@@ -14,8 +14,10 @@ import {
   ForbiddenError,
   createMongoAbility,
   MongoAbility,
-  Abilities,
+  Subject,
 } from '@casl/ability';
+import { Client } from 'src/client/entities/client.entity';
+import { CHECK_ABILITY, SUPERUSER } from 'src/constants';
 
 export const actions = [
   'read',
@@ -25,6 +27,7 @@ export const actions = [
   'delete'
 ] as const;
 
+type Abilities = [string, Subject];
 export type AppAbility = MongoAbility<Abilities>;
 
 @Injectable()
@@ -40,7 +43,9 @@ export class AbilityGuard implements CanActivate {
     @InjectRepository(Permission)
     private permissionRepository: Repository<Permission>,
     @InjectRepository(Role)
-    private roleRepository: Repository<Role>
+    private roleRepository: Repository<Role>,
+    @InjectRepository(Client)
+    private clientRepository: Repository<Client>
 
   ) {}
 
@@ -50,29 +55,44 @@ export class AbilityGuard implements CanActivate {
       [];
     const request = context.switchToHttp().getRequest();
     const auth = request.headers['authorization'];
+    const client = request.headers['x-client'];
+
+    if(!client){
+      return false;
+    }
 
     if(!auth){
       return false;
     }
 
-    const {bearer, token} = auth.split(' ');
-    if(bearer != 'bearer' || !token){
+    const [bearer, token] = auth.split(' ');
+    if(bearer != 'Bearer' || !token){
       return false;
     }
 
     const userID = this.jwtService.decode(token).sub;
     const operator = await this.operatorRepository.createQueryBuilder('operator')
-      .leftJoinAndSelect('operator.user', 'user')
       .leftJoinAndSelect('operator.roles', 'roles')
-      .where('user.id = :userID', { userID })
+      .leftJoinAndSelect('operator.client', 'client')
+      .where('operator.user.id = :userID', { userID })
       .getOne();
     
-    if(!operator || !operator?.roles || 
-      !operator?.roles?.length || !operator?.client){
+    
+    if(!operator?.roles || !operator?.roles?.length){
       return false;
     }
 
-    const permissions: Permission[] = [];
+    if(operator.roles.some((role) => {
+      role.name === SUPERUSER;
+    })){
+      return true;
+    }
+
+    if(operator?.client || operator?.client?.name !== client){
+      return false;
+    }
+
+    const permissions = [];
     for(const role of operator.roles){
       permissions.push(...(
         await this.permissionRepository.createQueryBuilder('permissions')
@@ -81,11 +101,25 @@ export class AbilityGuard implements CanActivate {
         .getMany()
       ));
     }
-    for (const rule of rules){
 
-    }
+    
+
 
 
     return true;
   }
+
+  async findSubject(subject: string){
+    const table = await this.clientRepository.manager.query(
+      `SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_name = $1
+      )`,
+      [subject.toLowerCase()]
+    );
+    return table[0].exists;
+  }
+
+  
 }

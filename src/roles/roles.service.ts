@@ -1,23 +1,64 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Role } from './entities/role.entity';
+import { Repository } from 'typeorm';
+import { ClientService } from 'src/client/client.service';
 
 @Injectable()
 export class RolesService {
+  constructor(
+    @InjectRepository(Role)
+    private roleRepository: Repository<Role>,
+    @Inject(forwardRef(() => ClientService))
+    private clientService: ClientService
+
+  ) {}
   create(createRoleDto: CreateRoleDto) {
-    return 'This action adds a new role';
+    const role = this.roleRepository.create(createRoleDto);
+    return this.roleRepository.save(role);
   }
 
   findAll() {
     return `This action returns all roles`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} role`;
+  findByName(name: string){
+    return this.roleRepository.createQueryBuilder('role')
+    .leftJoinAndSelect('role.client', 'client')
+    .leftJoinAndSelect('role.operators', 'operators')
+    .leftJoinAndSelect('role.permissions', 'permissions')
+    .where('role.name = :name', { name })
+    .getOne();
+  }
+  
+  findById(id: number) {
+    return this.roleRepository.createQueryBuilder('role')
+    .leftJoinAndSelect('role.client', 'client')
+    .leftJoinAndSelect('role.operators', 'operators')
+    .leftJoinAndSelect('role.permissions', 'permissions')
+    .where('role.id = :id', { id })
+    .getOne()
   }
 
-  update(id: number, updateRoleDto: UpdateRoleDto) {
-    return `This action updates a #${id} role`;
+  async update(id: number, updateRoleDto: UpdateRoleDto) {
+    const role = await this.findById(id);
+    const client = updateRoleDto.client;
+    const operators = updateRoleDto.operators;
+    const permissions = updateRoleDto.permissions;
+    if(role){
+      if(client){
+        try{
+          const roleClient = await this.clientService.addRole(client.id as number, role);
+          role.client = roleClient;
+        }catch(error){
+          console.error(error);
+          return error.message;
+        }
+      }
+      return this.roleRepository.save(role);
+    }
   }
 
   remove(id: number) {
