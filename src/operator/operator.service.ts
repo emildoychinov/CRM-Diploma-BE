@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { Client } from 'src/client/entities/client.entity';
+import { Role } from 'src/roles/entities/role.entity';
 
 @Injectable()
 export class OperatorService {
@@ -89,6 +90,27 @@ export class OperatorService {
       throw new NotFoundException('Operator not found');
     }
 
+  }
+
+  async addRole(id: number, role: Role){
+    const operator = await this.findOne(id);
+    const {operators, client: roleClient, ...sanitizedRole} = role;
+    console.log(operator?.client);
+    console.log(roleClient);
+    if(operator){
+      if(!operator.roles?.find(role => role.name === sanitizedRole.name)){
+        if(roleClient?.name === operator.client?.name){
+          operator.roles?.push(sanitizedRole);
+          return this.operatorRepository.save(operator);
+        }else{
+          throw new Error('Role client does not match operator client')
+        }
+      }else{
+        throw new Error('Role already exists whitin this operator')
+      }
+    }else{
+      throw new NotFoundException('Operator not found')
+    }
   }
 
   remove(id: number) {

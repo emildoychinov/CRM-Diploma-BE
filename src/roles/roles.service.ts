@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from './entities/role.entity';
 import { Repository } from 'typeorm';
 import { ClientService } from 'src/client/client.service';
+import { Operator } from 'src/operator/entities/operator.entity';
+import { OperatorService } from 'src/operator/operator.service';
 
 @Injectable()
 export class RolesService {
@@ -12,7 +14,9 @@ export class RolesService {
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
     @Inject(forwardRef(() => ClientService))
-    private clientService: ClientService
+    private clientService: ClientService,
+    @Inject(forwardRef(() => OperatorService))
+    private operatorService: OperatorService
 
   ) {}
   create(createRoleDto: CreateRoleDto) {
@@ -52,6 +56,17 @@ export class RolesService {
         try{
           const roleClient = await this.clientService.addRole(client.id as number, role);
           role.client = roleClient;
+        }catch(error){
+          console.error(error);
+          return error.message;
+        }
+      }
+      if(operators){
+        try{
+          for(let operator of operators){
+            const roleOperator = await this.operatorService.addRole(operator.id as number, role);
+            role.operators?.push(roleOperator);
+          }
         }catch(error){
           console.error(error);
           return error.message;
