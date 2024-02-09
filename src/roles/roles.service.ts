@@ -1,4 +1,4 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { ClientService } from 'src/client/client.service';
 import { Operator } from 'src/operator/entities/operator.entity';
 import { OperatorService } from 'src/operator/operator.service';
+import { SUPERUSER } from 'src/constants';
 
 @Injectable()
 export class RolesService {
@@ -17,9 +18,9 @@ export class RolesService {
     private clientService: ClientService,
     @Inject(forwardRef(() => OperatorService))
     private operatorService: OperatorService
-
   ) {}
   create(createRoleDto: CreateRoleDto) {
+    //TODO : superusers can create other superusers, but regular operators cannot
     const role = this.roleRepository.create(createRoleDto);
     return this.roleRepository.save(role);
   }

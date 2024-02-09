@@ -50,27 +50,18 @@ export class AbilityGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext,): Promise<boolean> {
+
     const rules: any =
       this.reflector.get<RequiredRule[]>(CHECK_ABILITY, context.getHandler()) ||
       [];
     const request = context.switchToHttp().getRequest();
-    const auth = request.headers['authorization'];
     const client = request.headers['x-client'];
 
     if(!client){
       return false;
     }
-
-    if(!auth){
-      return false;
-    }
-
-    const [bearer, token] = auth.split(' ');
-    if(bearer != 'Bearer' || !token){
-      return false;
-    }
-
-    const userID = this.jwtService.decode(token).sub;
+    
+    const userID = request.user;
     const operator = await this.operatorRepository.createQueryBuilder('operator')
       .leftJoinAndSelect('operator.roles', 'roles')
       .leftJoinAndSelect('operator.client', 'client')
@@ -83,12 +74,12 @@ export class AbilityGuard implements CanActivate {
     }
 
     if(operator.roles.some((role) => {
-      role.name === SUPERUSER;
+      return role.name === SUPERUSER;
     })){
       return true;
     }
 
-    if(operator?.client || operator?.client?.name !== client){
+    if(operator?.client && operator?.client?.name !== client){
       return false;
     }
 
