@@ -10,6 +10,8 @@ import { Operator } from 'src/operator/entities/operator.entity';
 import { ClientModule } from 'src/client/client.module';
 import { OperatorModule } from 'src/operator/operator.module';
 import { PermissionsModule } from 'src/permissions/permissions.module';
+import { QueueService } from 'src/queue/queue.service';
+import { RolesListener } from './roles.listener';
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { PermissionsModule } from 'src/permissions/permissions.module';
     forwardRef(() => PermissionsModule), 
     TypeOrmModule.forFeature([Role, Permission, Client ,Operator])],
   controllers: [RolesController],
-  providers: [RolesService],
+  providers: [QueueService, RolesService, RolesListener],
   exports: [RolesService]
 })
 export class RolesModule {}

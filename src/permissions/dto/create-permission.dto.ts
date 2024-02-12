@@ -8,9 +8,8 @@ export class CreatePermissionDto {
     @IsString()
     subject: string;
 
-    @IsOptional()
     @IsString()
-    conditions?: string;
+    conditions: string;
 
     @IsOptional()
     roles?: Role[];

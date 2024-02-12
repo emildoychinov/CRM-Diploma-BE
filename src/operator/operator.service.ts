@@ -34,7 +34,7 @@ export class OperatorService {
       .leftJoinAndSelect('operator.client', 'client')
       .leftJoinAndSelect('operator.roles', 'roles')
       .where('operator.id = :id', { id })
-      .getOne();
+      .getOneOrFail();
   }
 
   async assignUser(id:number, user: Partial<User>){
@@ -93,10 +93,10 @@ export class OperatorService {
   }
 
   async addRole(id: number, role: Role){
+
     const operator = await this.findOne(id);
     const {operators, client: roleClient, ...sanitizedRole} = role;
-    console.log(operator?.client);
-    console.log(roleClient);
+    
     if(operator){
       if(!operator.roles?.find(role => role.name === sanitizedRole.name)){
         if(roleClient?.name === operator.client?.name){
@@ -111,7 +111,9 @@ export class OperatorService {
     }else{
       throw new NotFoundException('Operator not found')
     }
+    
   }
+  
 
   remove(id: number) {
     return `This action removes a #${id} operator`;

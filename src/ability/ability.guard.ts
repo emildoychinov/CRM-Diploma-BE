@@ -61,12 +61,13 @@ export class AbilityGuard implements CanActivate {
       return false;
     }
     
-    const userID = request.user;
+    const userID = request.user.sub;
     const operator = await this.operatorRepository.createQueryBuilder('operator')
       .leftJoinAndSelect('operator.roles', 'roles')
+      .leftJoinAndSelect('roles.permissions', 'permissions')
       .leftJoinAndSelect('operator.client', 'client')
       .where('operator.user.id = :userID', { userID })
-      .getOne();
+      .getOneOrFail();
     
     
     if(!operator?.roles || !operator?.roles?.length){
@@ -83,15 +84,19 @@ export class AbilityGuard implements CanActivate {
       return false;
     }
 
-    const permissions = [];
-    for(const role of operator.roles){
-      permissions.push(...(
-        await this.permissionRepository.createQueryBuilder('permissions')
-        .innerJoin('permission.roles', 'role')
-        .where('role.id = :roleID', {roleID : role.id})
-        .getMany()
-      ));
+    let permissions: Permission[] = [];
+    let seenIds = new Set<number>();
+
+    for (const role of operator.roles) {
+      for (const permission of role.permissions as Permission[]) {
+        if (!seenIds.has(permission.id)) {
+          permissions.push(permission);
+          seenIds.add(permission.id);
+          }
+      }
     }
+    
+
 
     
 

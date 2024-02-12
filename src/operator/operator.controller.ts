@@ -8,6 +8,7 @@ import { AbilityGuard } from 'src/ability/ability.guard';
 export class OperatorController {
   constructor(private readonly operatorService: OperatorService) {}
 
+  @UseGuards(AbilityGuard)
   @Post()
   create(@Body() createOperatorDto: CreateOperatorDto) {
     return this.operatorService.create(createOperatorDto);
