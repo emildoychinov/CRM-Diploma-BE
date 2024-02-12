@@ -8,24 +8,14 @@ import { Role } from 'src/roles/entities/role.entity';
 import { Repository } from 'typeorm';
 import { RequiredRule } from './ability.decorator';
 import {
-  subject,
-  RawRuleOf,
-  ForcedSubject,
   ForbiddenError,
-  createMongoAbility,
   MongoAbility,
   Subject,
+  defineAbility,
+  subject,
 } from '@casl/ability';
 import { Client } from 'src/client/entities/client.entity';
 import { CHECK_ABILITY, SUPERUSER } from 'src/constants';
-
-export const actions = [
-  'read',
-  'manage',
-  'create',
-  'update',
-  'delete'
-] as const;
 
 type Abilities = [string, Subject];
 export type AppAbility = MongoAbility<Abilities>;
@@ -33,17 +23,10 @@ export type AppAbility = MongoAbility<Abilities>;
 @Injectable()
 export class AbilityGuard implements CanActivate {
   
-  createAbility = (rules: RawRuleOf<AppAbility>[]) => createMongoAbility<AppAbility>(rules);
-  
   constructor(
     private reflector: Reflector,
-    private jwtService: JwtService,
     @InjectRepository(Operator)
     private operatorRepository: Repository<Operator>,
-    @InjectRepository(Permission)
-    private permissionRepository: Repository<Permission>,
-    @InjectRepository(Role)
-    private roleRepository: Repository<Role>,
     @InjectRepository(Client)
     private clientRepository: Repository<Client>
 
@@ -74,31 +57,40 @@ export class AbilityGuard implements CanActivate {
       return false;
     }
 
-    if(operator.roles.some((role) => {
-      return role.name === SUPERUSER;
-    })){
-      return true;
-    }
+    // if(operator.roles.some((role) => {
+    //   return role.name === SUPERUSER;
+    // })){
+    //   return true;
+    // }
 
     if(operator?.client && operator?.client?.name !== client){
       return false;
     }
 
-    let permissions: Permission[] = [];
     let seenIds = new Set<number>();
 
-    for (const role of operator.roles) {
-      for (const permission of role.permissions as Permission[]) {
-        if (!seenIds.has(permission.id)) {
-          permissions.push(permission);
-          seenIds.add(permission.id);
+    const ability = defineAbility((can, cannot) => {
+      if(operator.roles){
+        for (const role of operator.roles) {
+          for (const permission of role.permissions as Permission[]) {
+            if (!seenIds.has(permission.id)) {
+              if(permission.conditions){
+                can(permission.action, permission.subject, permission.conditions);
+              }else{
+                can(permission.action, permission.subject);
+              }
+              seenIds.add(permission.id);
+            }
           }
+        }
       }
+    });
+
+    for(const rule of rules){
+      ForbiddenError.from(ability)
+        .setMessage('You are not allowed to perform this action')
+        .throwUnlessCan(rule.action, rule.subject);
     }
-    
-
-
-    
 
 
 

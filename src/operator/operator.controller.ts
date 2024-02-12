@@ -3,12 +3,12 @@ import { OperatorService } from './operator.service';
 import { CreateOperatorDto } from './dto/create-operator.dto';
 import { UpdateOperatorDto } from './dto/update-operator.dto';
 import { AbilityGuard } from 'src/ability/ability.guard';
+import { checkAbilites } from 'src/ability/ability.decorator';
 
 @Controller('operator')
 export class OperatorController {
   constructor(private readonly operatorService: OperatorService) {}
 
-  @UseGuards(AbilityGuard)
   @Post()
   create(@Body() createOperatorDto: CreateOperatorDto) {
     return this.operatorService.create(createOperatorDto);
@@ -19,6 +19,7 @@ export class OperatorController {
     return this.operatorService.findAll();
   }
 
+  @checkAbilites({ action: 'read', subject: 'user' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.operatorService.findOne(+id);

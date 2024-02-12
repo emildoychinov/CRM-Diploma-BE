@@ -17,6 +17,12 @@ import { QueueService } from './queue/queue.service';
 import { QueueModule } from './queue/queue.module';
 import { BullModule } from '@nestjs/bull';
 import { RedisModule } from './redis/redis.module';
+import { AbilityGuard } from './ability/ability.guard';
+import { Operator } from './operator/entities/operator.entity';
+import { User } from './user/entities/user.entity';
+import { Client } from './client/entities/client.entity';
+import { Permission } from './permissions/entities/permission.entity';
+import { Role } from './roles/entities/role.entity';
 require('events').EventEmitter.defaultMaxListeners = 0;
 
 @Module({
@@ -46,6 +52,7 @@ require('events').EventEmitter.defaultMaxListeners = 0;
         synchronize: true,
       }),
     }),
+    TypeOrmModule.forFeature([Operator, User, Client, Permission, Role]),
     ClientModule,
     OperatorModule,
     UserModule,
@@ -66,6 +73,10 @@ require('events').EventEmitter.defaultMaxListeners = 0;
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AbilityGuard
     },
     QueueService,
   ],
