@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { OperatorService } from './operator.service';
 import { CreateOperatorDto } from './dto/create-operator.dto';
 import { UpdateOperatorDto } from './dto/update-operator.dto';
+import { AbilityGuard } from 'src/ability/ability.guard';
+import { checkAbilites } from 'src/ability/ability.decorator';
 
 @Controller('operator')
 export class OperatorController {
@@ -17,6 +19,7 @@ export class OperatorController {
     return this.operatorService.findAll();
   }
 
+  @checkAbilites({ action: 'write', subject: 'user' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.operatorService.findOne(+id);

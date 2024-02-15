@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UseInterceptors } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UseInterceptors, forwardRef } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,9 +14,8 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(Operator)
-    private operatorRepository: Repository<Operator>,
-    private operatorService: OperatorService
+    @Inject(forwardRef(() => OperatorService))
+    private operatorService: OperatorService,
   ) { }
 
   create(createUserDto: CreateUserDto) {
@@ -45,16 +44,15 @@ export class UserService {
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.findById(id);
+    const operator = updateUserDto.operator;
     if(user){
       if(updateUserDto.operator){
-        const userOperator = await this.operatorService.findOne(updateUserDto.operator.id as number);
-        if(userOperator && !userOperator.user){
-          const {operator, email, password, ...sanitizedUser} = user;
+        try{
+          const userOperator = await this.operatorService.assignUser(operator?.id as number, user);
           user.operator = userOperator;
-          userOperator.user = sanitizedUser as User;
-          await this.operatorRepository.save(userOperator);
-        }else{
-          throw new Error('Cannot assign user to operator already associated with another user')
+        }catch(error){
+          console.error(error);
+          return false;
         }
       }
       return this.userRepository.save(user);

@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,86 +6,121 @@ import { Operator } from 'src/operator/entities/operator.entity';
 import { Permission } from 'src/permissions/entities/permission.entity';
 import { Role } from 'src/roles/entities/role.entity';
 import { Repository } from 'typeorm';
-import { RequiredRule, CHECK_ABILITY } from './ability.decorator';
+import { RequiredRule } from './ability.decorator';
 import {
-  subject,
-  RawRuleOf,
-  ForcedSubject,
   ForbiddenError,
-  createMongoAbility,
   MongoAbility,
-  Abilities,
+  Subject,
+  defineAbility,
+  subject,
 } from '@casl/ability';
+import { Client } from 'src/client/entities/client.entity';
+import { CHECK_ABILITY, SUBJECT_ACTIONS, SUPERUSER } from 'src/constants';
 
-export const actions = [
-  'read',
-  'manage',
-  'create',
-  'update',
-  'delete'
-] as const;
-
+type Abilities = [string, Subject];
 export type AppAbility = MongoAbility<Abilities>;
 
 @Injectable()
 export class AbilityGuard implements CanActivate {
   
-  createAbility = (rules: RawRuleOf<AppAbility>[]) => createMongoAbility<AppAbility>(rules);
-  
   constructor(
     private reflector: Reflector,
-    private jwtService: JwtService,
     @InjectRepository(Operator)
     private operatorRepository: Repository<Operator>,
-    @InjectRepository(Permission)
-    private permissionRepository: Repository<Permission>,
-    @InjectRepository(Role)
-    private roleRepository: Repository<Role>
+    @InjectRepository(Client)
+    private clientRepository: Repository<Client>
 
   ) {}
 
   async canActivate(context: ExecutionContext,): Promise<boolean> {
+
     const rules: any =
       this.reflector.get<RequiredRule[]>(CHECK_ABILITY, context.getHandler()) ||
       [];
     const request = context.switchToHttp().getRequest();
-    const auth = request.headers['authorization'];
-
-    if(!auth){
+    const client = request.headers['x-client'];
+    if(!client){
       return false;
     }
+    for(const rule of rules){
+      if(!(await this.findSubject(rule?.subject))){
+        Logger.error(`Permission subject ${rule.subject} does not exist`);
+        throw new NotFoundException(`Permission subject ${rule.subject} does not exist`);
+      }
 
-    const {bearer, token} = auth.split(' ');
-    if(bearer != 'bearer' || !token){
-      return false;
+      if(rule.action && !SUBJECT_ACTIONS.includes(rule.action)){
+        Logger.error(`Permission action ${rule.action} does not exist`);
+        throw new NotFoundException(`Permission action ${rule.action} does not exist`);
+      }
     }
 
-    const userID = this.jwtService.decode(token).sub;
+    const userID = request.user.sub;
     const operator = await this.operatorRepository.createQueryBuilder('operator')
-      .leftJoinAndSelect('operator.user', 'user')
       .leftJoinAndSelect('operator.roles', 'roles')
-      .where('user.id = :userID', { userID })
-      .getOne();
+      .leftJoinAndSelect('roles.permissions', 'permissions')
+      .leftJoinAndSelect('operator.client', 'client')
+      .where('operator.user.id = :userID', { userID })
+      .getOneOrFail();
     
-    if(!operator || !operator?.roles || 
-      !operator?.roles?.length || !operator?.client){
+    
+    if(!operator?.roles || !operator?.roles?.length){
       return false;
     }
 
-    const permissions: Permission[] = [];
-    for(const role of operator.roles){
-      permissions.push(...(
-        await this.permissionRepository.createQueryBuilder('permissions')
-        .innerJoin('permission.roles', 'role')
-        .where('role.id = :roleID', {roleID : role.id})
-        .getMany()
-      ));
+    if(operator.roles.some((role) => {
+      return role.name === SUPERUSER;
+    })){
+      return true;
     }
-    for (const rule of rules){
 
+    if(operator?.client && operator?.client?.name !== client){
+      return false;
     }
+
+    let seenIds = new Set<number>();
+
+    const ability = defineAbility((can, cannot) => {
+      if(operator.roles){
+        for (const role of operator.roles) {
+          for (const permission of role.permissions as Permission[]) {
+            if (!seenIds.has(permission.id)) {
+              if(permission.conditions){
+                can(permission.action, permission.subject, permission.conditions);
+              }else{
+                can(permission.action, permission.subject);
+              }
+              seenIds.add(permission.id);
+            }
+          }
+        }
+      }
+    });
+
+    for(const rule of rules){
+      ForbiddenError.from(ability)
+        .setMessage('You are not allowed to perform this action')
+        .throwUnlessCan(rule.action, rule.subject);
+    }
+
 
 
     return true;
   }
+
+  async findSubject(subject: string){
+    if(!subject){
+      return true;
+    }
+    const table = await this.clientRepository.manager.query(
+      `SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_name = $1
+      )`,
+      [subject.toLowerCase()]
+    );
+    return table[0].exists;
+  }
+
+  
 }
