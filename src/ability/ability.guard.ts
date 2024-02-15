@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,7 +15,7 @@ import {
   subject,
 } from '@casl/ability';
 import { Client } from 'src/client/entities/client.entity';
-import { CHECK_ABILITY, SUPERUSER } from 'src/constants';
+import { CHECK_ABILITY, SUBJECT_ACTIONS, SUPERUSER } from 'src/constants';
 
 type Abilities = [string, Subject];
 export type AppAbility = MongoAbility<Abilities>;
@@ -39,11 +39,21 @@ export class AbilityGuard implements CanActivate {
       [];
     const request = context.switchToHttp().getRequest();
     const client = request.headers['x-client'];
-
     if(!client){
       return false;
     }
-    
+    for(const rule of rules){
+      if(!(await this.findSubject(rule?.subject))){
+        Logger.error(`Permission subject ${rule.subject} does not exist`);
+        throw new NotFoundException(`Permission subject ${rule.subject} does not exist`);
+      }
+
+      if(rule.action && !SUBJECT_ACTIONS.includes(rule.action)){
+        Logger.error(`Permission action ${rule.action} does not exist`);
+        throw new NotFoundException(`Permission action ${rule.action} does not exist`);
+      }
+    }
+
     const userID = request.user.sub;
     const operator = await this.operatorRepository.createQueryBuilder('operator')
       .leftJoinAndSelect('operator.roles', 'roles')
@@ -57,11 +67,11 @@ export class AbilityGuard implements CanActivate {
       return false;
     }
 
-    // if(operator.roles.some((role) => {
-    //   return role.name === SUPERUSER;
-    // })){
-    //   return true;
-    // }
+    if(operator.roles.some((role) => {
+      return role.name === SUPERUSER;
+    })){
+      return true;
+    }
 
     if(operator?.client && operator?.client?.name !== client){
       return false;
@@ -98,6 +108,9 @@ export class AbilityGuard implements CanActivate {
   }
 
   async findSubject(subject: string){
+    if(!subject){
+      return true;
+    }
     const table = await this.clientRepository.manager.query(
       `SELECT EXISTS (
         SELECT 1

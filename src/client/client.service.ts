@@ -37,7 +37,7 @@ export class ClientService {
       .leftJoinAndSelect('operators.roles', 'roles')
       .leftJoinAndSelect('operators.user', 'user')
       .where('client.name = :name', {name})
-      .getOne();
+      .getOneOrFail();
   }
 
   async findById(id: number) {
@@ -48,7 +48,7 @@ export class ClientService {
       .leftJoinAndSelect('operators.roles', 'roles')
       .leftJoinAndSelect('operators.user', 'user')
       .where('client.id = :id', {id})
-      .getOne();
+      .getOneOrFail();
   }
 
 

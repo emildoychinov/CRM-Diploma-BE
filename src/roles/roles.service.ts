@@ -29,9 +29,12 @@ export class RolesService {
     private readonly queueService: QueueService,
   ) {}
   create(createRoleDto: CreateRoleDto) {
-    //TODO : superusers can create other superusers, but regular operators cannot
-    const role = this.roleRepository.create(createRoleDto);
-    return this.roleRepository.save(role);
+    if(createRoleDto.name != SUPERUSER){
+      const role = this.roleRepository.create(createRoleDto);
+      return this.roleRepository.save(role);
+    }else{
+      throw new UnauthorizedException("Not allowed to create superusers.")
+    }
   }
 
   findAll() {

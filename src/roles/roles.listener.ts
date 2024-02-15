@@ -52,6 +52,8 @@ export class RolesListener {
         }
 
         try{
+
+          //TODO : insert operations
           if (entitiesDto && entitiesDto.length > 0) {
             const promises = entitiesDto.map(async (entity: any) => {
             const roleEntity = await service.addRole(entity.id, role);

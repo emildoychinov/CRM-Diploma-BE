@@ -19,7 +19,7 @@ export class OperatorController {
     return this.operatorService.findAll();
   }
 
-  @checkAbilites({ action: 'read', subject: 'user' })
+  @checkAbilites({ action: 'write', subject: 'user' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.operatorService.findOne(+id);
