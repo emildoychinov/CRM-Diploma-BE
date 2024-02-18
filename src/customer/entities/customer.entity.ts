@@ -1,15 +1,15 @@
 import { Client } from "src/client/entities/client.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Customer {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({nullable: false})
+    @Column()
     first_name: string;
 
-    @Column({nullable: false})
+    @Column()
     last_name: string;
 
     @Column({nullable: false})
