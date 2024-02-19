@@ -9,7 +9,10 @@ export class AuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const allowUnauthorizedRequest = this.reflector.getAllAndOverride<boolean>(UNAUTHORIZED_REQUEST_DECORATOR, [context.getHandler(), context.getClass()])
+    const allowUnauthorizedRequest = this.reflector.getAllAndOverride<boolean>(UNAUTHORIZED_REQUEST_DECORATOR, [context.getHandler(), context.getClass()]);
+    if(allowUnauthorizedRequest){
+      request.user = {sub : 'allowed'};
+    }
     return allowUnauthorizedRequest || this.validateRequest(request);
   }
 

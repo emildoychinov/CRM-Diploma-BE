@@ -2,6 +2,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import { CreateCustomerDto } from './create-customer.dto';
 import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { Client } from 'src/client/entities/client.entity';
+import { AccountStatus } from '../../enums/customer-account-status.enum';
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
     
@@ -14,21 +15,13 @@ export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
     public readonly password: string;
     
     @IsOptional()
-    firstName?: string;
-
-    @IsOptional()
-    lastName?: string;
-
-    @IsOptional()
     number: string;
 
     @IsOptional()
-    account_status: string;
+    account_status: AccountStatus;
 
     @IsOptional()
     notes: string;
     
-    @IsOptional()
-    public readonly client: Client;
 
 }

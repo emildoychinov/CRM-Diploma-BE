@@ -1,5 +1,6 @@
-import { IsEmail, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsEnum, IsInstance, IsObject, IsOptional, IsString } from "class-validator";
 import { Client } from "src/client/entities/client.entity";
+import { AccountStatus } from "../../enums/customer-account-status.enum";
 
 export class CreateCustomerDto {
     
@@ -18,14 +19,14 @@ export class CreateCustomerDto {
     @IsOptional()
     number: string;
 
-    @IsOptional()
-    account_status: string;
+    @IsEnum(AccountStatus)
+    account_status: AccountStatus;
 
     @IsOptional()
     notes: string;
     
-    @IsOptional()
-    public readonly client: Client;
+    @IsObject()
+    public readonly client: Partial<Client>;
    
 
 }

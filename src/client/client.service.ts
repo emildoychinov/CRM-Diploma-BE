@@ -47,6 +47,7 @@ export class ClientService {
       .leftJoinAndSelect('client.roles', 'room_roles')
       .leftJoinAndSelect('operators.roles', 'roles')
       .leftJoinAndSelect('operators.user', 'user')
+      .leftJoinAndSelect('client.customers', 'room_customers')
       .where('client.id = :id', {id})
       .getOneOrFail();
   }

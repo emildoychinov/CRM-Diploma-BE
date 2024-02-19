@@ -4,9 +4,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { Operator } from 'src/operator/entities/operator.entity';
-import { TransformInterceptor } from 'src/transform/transform.interceptor';
-import { validate } from 'class-validator';
 import { OperatorService } from 'src/operator/operator.service';
 
 @Injectable()
@@ -21,10 +18,6 @@ export class UserService {
   create(createUserDto: CreateUserDto) {
     const user = this.userRepository.create(createUserDto);
     return this.userRepository.save(user);
-  }
-
-  findAll() {
-    return `This action returns all user`;
   }
 
   findByEmail(email: string){

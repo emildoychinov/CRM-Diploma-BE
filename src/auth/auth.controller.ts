@@ -11,6 +11,6 @@ export class AuthController {
   @Post('login')
   @AllowUnauthorizedRequest()
   login(@Body() authUserDto: AuthUserDto): Promise<any> {
-    return this.authService.login(authUserDto);
+    return this.authService.loginOperator(authUserDto);
   }
 }
