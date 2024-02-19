@@ -19,6 +19,7 @@ export class CreateCustomerDto {
     @IsOptional()
     number: string;
 
+    @IsOptional()
     @IsEnum(AccountStatus)
     account_status: AccountStatus;
 
