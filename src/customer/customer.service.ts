@@ -6,9 +6,9 @@ import { Customer } from './entities/customer.entity';
 import { Repository } from 'typeorm';
 import { AuthService } from 'src/auth/auth.service';
 import { LoginCustomerDto } from './dto/login-customer.dto';
-import { NotFoundError } from 'rxjs';
 import { Client } from 'src/client/entities/client.entity';
 import { AccountStatus } from '../enums/customer-account-status.enum';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class CustomerService {
@@ -24,14 +24,16 @@ export class CustomerService {
       createCustomerDto.account_status = AccountStatus.PENDING_ACTIVATION;
     }
 
-    const customer = this.customerRepository.create(createCustomerDto);
+    const {password: rawPassword, ...customerDto} = createCustomerDto;
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+    const customer = this.customerRepository.create({password: hashedPassword, ...customerDto});
+
     try{
       await this.findByEmailAndClient(customer.email, customer.client.id);
     }catch(error){
       await this.customerRepository.save(customer);
       return this.authService.constructCostumerToken(customer);
     }
-    
     throw new Error('Customer with this email already registered under client')
 
   }
@@ -40,7 +42,7 @@ export class CustomerService {
 
     try{
       const customer = await this.findByEmailAndClient(loginCustomerDto.email, loginCustomerDto.client.id as number);
-      if(loginCustomerDto.password === customer.password){
+      if(await bcrypt.compare(loginCustomerDto.password, customer.password)){
         return this.authService.constructCostumerToken(customer);
       }else{
         throw new UnauthorizedException('Invalid customer credentials for client');

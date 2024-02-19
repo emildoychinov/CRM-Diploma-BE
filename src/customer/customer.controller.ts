@@ -9,13 +9,11 @@ import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-u
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
   
-  @AllowUnauthorizedRequest()
   @Post('auth/register')
   register(@Body() createCustomerDto: CreateCustomerDto) {
     return this.customerService.register(createCustomerDto);
   }
 
-  @AllowUnauthorizedRequest()
   @Post('auth/login')
   login(@Body() loginCustomerDto: LoginCustomerDto) {
     return this.customerService.login(loginCustomerDto);

@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ClientService } from './client.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
+import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-unauthorized-request.decorator';
 
 @Controller('client')
 export class ClientController {
@@ -16,7 +17,7 @@ export class ClientController {
   findAll() {
     return this.clientService.findAll();
   }
-
+  
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.clientService.findById(+id);

@@ -4,6 +4,7 @@ import { UserService } from '../user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { AuthUserDto } from './dto/auth-user.dto';
 import { Customer } from 'src/customer/entities/customer.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +15,7 @@ export class AuthService {
 
   async validateUser(authUserDto: AuthUserDto): Promise<User | null> {
     const user = await this.userService.findByEmail(authUserDto.email);
-    if (user && user.password === authUserDto.password) {
+    if (user && await bcrypt.compare(authUserDto.password, user.password)) {
       return user;
     }
     return null;
@@ -23,10 +24,14 @@ export class AuthService {
   async loginOperator(authUserDto: AuthUserDto): Promise<{}> {
     const user = await this.validateUser(authUserDto)
     const payload = { sub: user?.id };
-    return {
-      token: this.jwtService.sign(payload),
-      user: user
-    };
+    if(user){
+      return {
+        token: this.jwtService.sign(payload),
+        user: user
+      };
+    }else{
+      return {};
+    }
   }
 
   constructCostumerToken(customer: Customer){

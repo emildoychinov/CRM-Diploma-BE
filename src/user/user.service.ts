@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { OperatorService } from 'src/operator/operator.service';
+import * as bcrypt from 'bcrypt';
+import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-unauthorized-request.decorator';
 
 @Injectable()
 export class UserService {
@@ -15,8 +17,12 @@ export class UserService {
     private operatorService: OperatorService,
   ) { }
 
-  create(createUserDto: CreateUserDto) {
-    const user = this.userRepository.create(createUserDto);
+
+  @AllowUnauthorizedRequest()
+  async create(createUserDto: CreateUserDto) {
+    const {password: rawPassword, ...userDto} = createUserDto;
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+    const user = this.userRepository.create({password: hashedPassword, ...userDto});
     return this.userRepository.save(user);
   }
 
@@ -27,6 +33,7 @@ export class UserService {
     .where('user.email = :email', { email })
     .getOne();
   }
+
   async findById(id: number) {
     return this.userRepository
       .createQueryBuilder('user')
