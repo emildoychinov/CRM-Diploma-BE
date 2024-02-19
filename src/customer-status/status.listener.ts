@@ -5,6 +5,8 @@ import { CustomerService } from "src/customer/customer.service";
 import { UpdateCustomerDto } from "src/customer/dto/update-customer.dto";
 import { Customer } from "src/customer/entities/customer.entity";
 import { AccountStatus } from "src/enums/customer-account-status.enum";
+import { MailDto } from "src/mail/dto/mail.dto";
+import { MailService } from "src/mail/mail.service";
 import { QueueService } from "src/queue/queue.service";
 
 
@@ -14,14 +16,22 @@ export class StatusListener {
       @Inject('REDIS') 
       private readonly redis: Redis,
       private queueService: QueueService,
-      private customerService: CustomerService){
+      private customerService: CustomerService,
+      private mailService: MailService){
         this.customerService.findAll().then((customers: any) => {
           customers.forEach((customer: any) => {
             const queue = this.queueService.getQueue(`customer.${customer.id}.${customer.client.id}`);
+            
             this.queueService.createProcess(queue, 
-            `customer.${customer.id}.${customer.client.id}.changeAccountStatusProcess`,
+              `customer.${customer.id}.${customer.client.id}.changeAccountStatusProcess`,
               this.changeAccountStatusProcess.bind(this),
-            )
+            );
+
+            this.queueService.createProcess(queue, 
+              `customer.${customer.id}.${customer.client.id}.sendBanMessageProcess`,
+              this.sendBanMessageProcess.bind(this),
+            );
+
           })
         })
         
@@ -34,15 +44,31 @@ export class StatusListener {
     }>){
         const {customer, account_status, notes} = job.data;
         try{
+
             await this.customerService.update(customer.id, customer.client.id, {
                 account_status,
                 notes: notes ?? ''
             } as UpdateCustomerDto)
+
+            await this.mailService.sendStatusUpdate({
+              receiver: customer.email,
+              title: 'Account status change',
+              name: `${customer?.first_name} ${customer?.last_name}`,
+              client: customer.client.name,
+              reason: notes ?? '',
+              status: account_status 
+            } as MailDto)
             Logger.log(`operation ${job.id} of changing account status finished on customer ${customer.id}`)
-        }catch(error){
+          
+          }catch(error){
             Logger.error(error);
             throw error;
         }
+    }
+
+    async sendBanMessageProcess(job: Job<{ mailDto: MailDto }>){
+      const {mailDto} = job.data;
+      await this.mailService.sendStatusUpdate(mailDto);
     }
 
 

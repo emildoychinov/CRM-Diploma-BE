@@ -19,7 +19,6 @@ export class User {
     @Exclude()
     @Column({nullable: false})
     password: string;
-
     
     @OneToOne(() => Operator, (operator) => operator.user, {eager: true, nullable: true})
     @JoinColumn({ name: 'operator_id' })

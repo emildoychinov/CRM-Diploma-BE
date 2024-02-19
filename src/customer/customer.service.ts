@@ -10,8 +10,10 @@ import { Client } from 'src/client/entities/client.entity';
 import { AccountStatus } from '../enums/customer-account-status.enum';
 import * as bcrypt from 'bcrypt';
 import { QueueService } from 'src/queue/queue.service';
-import { CHANGE_STATUS_LENGTHS } from 'src/constants';
+import { CHANGE_STATUS_LENGTHS, DURATION_WORD_KEYS } from 'src/constants';
 import { StatusDto } from 'src/customer-status/dto/status.dto';
+import { MailService } from 'src/mail/mail.service';
+import { MailDto } from 'src/mail/dto/mail.dto';
 
 @Injectable()
 export class CustomerService {
@@ -95,22 +97,24 @@ export class CustomerService {
     try{
 
       const customer = await this.findByIdAndClient(id, clientID);
-      const {client: customerClient, ...sanitizedCustomer} = customer;
-      if(updateCustomerDto.email && updateCustomerDto.email !== sanitizedCustomer.email){
+      const {id: customerID, client: customerClient, email: customerEmail, ...sanitizedCustomer} = customer;
+      if(updateCustomerDto.email && updateCustomerDto.email !== customerEmail){
         try{
           await this.findByEmailAndClient(updateCustomerDto.email, clientID);
-        }catch(error){}
-        
+        }catch(error){console.error(error)} 
         finally{
           throw new Error(`User with email ${updateCustomerDto.email} already exists under client ${clientID}`);
         }
+      }else{
+        updateCustomerDto.email = customerEmail;
       }
 
       const updatedCustomer = {
-        id: customer.id, 
-        client: customerClient as Client, 
+        id: customerID,
+        client: customerClient,
         ...updateCustomerDto
       }
+
       return this.customerRepository.save(updatedCustomer)
 
     }catch(error){
@@ -125,8 +129,26 @@ export class CustomerService {
         account_status: AccountStatus.BANNED,
         notes : statusDto.reason,
       } as UpdateCustomerDto);
+      
+      const queue = this.queueService.getQueue(`customer.${id}.${clientID}`);
+
       await this.queueService.add(
-        this.queueService.getQueue(`customer.${id}.${clientID}`),
+        queue,
+         `customer.${id}.${clientID}.sendBanMessageProcess`,
+         {
+          mailDto: {
+            receiver: customer.email,
+            title: 'Your account has been banned',
+            client: customer.client.name,
+            reason: customer.notes,
+            status: AccountStatus.BANNED,
+            duration: DURATION_WORD_KEYS[statusDto.duration]
+          } as MailDto
+         }
+      )
+
+      await this.queueService.add(
+       queue,
         `customer.${id}.${clientID}.changeAccountStatusProcess`,
         {
           customer,
@@ -135,6 +157,8 @@ export class CustomerService {
         },
         {delay: CHANGE_STATUS_LENGTHS[statusDto.duration]}
       )
+
+      
       return `Customer ${customer.id} banned successfully`
     }catch(error){
       throw error;
