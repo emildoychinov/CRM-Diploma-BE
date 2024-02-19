@@ -9,6 +9,9 @@ import { LoginCustomerDto } from './dto/login-customer.dto';
 import { Client } from 'src/client/entities/client.entity';
 import { AccountStatus } from '../enums/customer-account-status.enum';
 import * as bcrypt from 'bcrypt';
+import { QueueService } from 'src/queue/queue.service';
+import { CHANGE_STATUS_LENGTHS } from 'src/constants';
+import { StatusDto } from 'src/customer-status/dto/status.dto';
 
 @Injectable()
 export class CustomerService {
@@ -16,6 +19,7 @@ export class CustomerService {
     @InjectRepository(Customer)
     private customerRepository: Repository<Customer>,
     private authService: AuthService,
+    private readonly queueService: QueueService,
   ) { }
 
   async register(createCustomerDto: CreateCustomerDto) {
@@ -72,11 +76,17 @@ export class CustomerService {
     })
   }
 
-  findAll(clientID: number) {
+  findAllInClient(clientID: number) {
     return this.customerRepository.find({
       where: { 
         client: {id : clientID}
       }})
+  }
+
+  findAll() {
+    return this.customerRepository.find({
+      relations:['client']
+    });
   }
 
 
@@ -108,6 +118,30 @@ export class CustomerService {
     }
 
   }
+
+  async ban(id: number, clientID: number, statusDto: StatusDto) {
+    try{
+      const customer = await this.update(id, clientID, {
+        account_status: AccountStatus.BANNED,
+        notes : statusDto.reason,
+      } as UpdateCustomerDto);
+      await this.queueService.add(
+        this.queueService.getQueue(`customer.${id}.${clientID}`),
+        `customer.${id}.${clientID}.changeAccountStatusProcess`,
+        {
+          customer,
+          account_status: AccountStatus.PENDING_ACTIVATION,
+          notes: `Previously banned for ${statusDto.reason}`
+        },
+        {delay: CHANGE_STATUS_LENGTHS[statusDto.duration]}
+      )
+      return `Customer ${customer.id} banned successfully`
+    }catch(error){
+      throw error;
+    }
+  }
+
+
 
   remove(id: number) {
     return `This action removes a #${id} customer`;

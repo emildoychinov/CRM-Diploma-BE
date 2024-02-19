@@ -4,6 +4,7 @@ import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { LoginCustomerDto } from './dto/login-customer.dto';
 import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-unauthorized-request.decorator';
+import { StatusDto } from 'src/customer-status/dto/status.dto';
 
 @Controller('customer')
 export class CustomerController {
@@ -19,10 +20,9 @@ export class CustomerController {
     return this.customerService.login(loginCustomerDto);
   }
 
-
-  @Get()
+  @Get('/all')
   findAll(@Req() request: any) {
-    return this.customerService.findAll(request.user.client_id);
+    return this.customerService.findAllInClient(request.user.client_id);
   }
 
   @Get(':id')
@@ -30,9 +30,14 @@ export class CustomerController {
     return this.customerService.findByIdAndClient(+id, request.user.client_id);
   }
 
-  @Patch(':id')
+  @Patch('ban/:id')
+  ban(@Param('id') id: string, @Body() statusDto: StatusDto, @Req() request: any){
+    return this.customerService.ban(+id, request.user.client_id, statusDto)
+  }
+  
+  @Patch('update/:id')
   update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto, @Req() request: any) {
-    return this.customerService.update(+id, request.user.client_id,  updateCustomerDto);
+    return this.customerService.update(+id, request.user.client_id, updateCustomerDto);
   }
 
   @Delete(':id')

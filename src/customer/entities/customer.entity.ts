@@ -29,8 +29,7 @@ export class Customer {
 
     @Column({nullable: true})
     account_status: string;
-
-    @Exclude()
+    
     @Column({nullable: true})
     notes: string;
 
