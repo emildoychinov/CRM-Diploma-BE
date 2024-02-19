@@ -28,9 +28,7 @@ export class CustomerService {
     try{
       await this.findByEmailAndClient(customer.email, customer.client.id);
     }catch(error){
-      console.error(error);
-      let cust = await this.customerRepository.save(customer);
-      console.log(cust);
+      await this.customerRepository.save(customer);
       return this.authService.constructCostumerToken(customer);
     }
     
@@ -42,14 +40,12 @@ export class CustomerService {
 
     try{
       const customer = await this.findByEmailAndClient(loginCustomerDto.email, loginCustomerDto.client.id as number);
-      console.log(customer);
       if(loginCustomerDto.password === customer.password){
         return this.authService.constructCostumerToken(customer);
       }else{
         throw new UnauthorizedException('Invalid customer credentials for client');
       }
     }catch(error){
-      console.log(error.message);
       throw new NotFoundException(`Could not find user ${loginCustomerDto.email} within client ${loginCustomerDto.client.id}`);
     }
   }
