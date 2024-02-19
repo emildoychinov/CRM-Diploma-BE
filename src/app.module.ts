@@ -23,6 +23,8 @@ import { User } from './user/entities/user.entity';
 import { Client } from './client/entities/client.entity';
 import { Permission } from './permissions/entities/permission.entity';
 import { Role } from './roles/entities/role.entity';
+import { CustomerModule } from './customer/customer.module';
+import { ClientGuard } from './client/client.guard';
 require('events').EventEmitter.defaultMaxListeners = 0;
 
 @Module({
@@ -62,6 +64,7 @@ require('events').EventEmitter.defaultMaxListeners = 0;
     CaslModule,
     QueueModule,
     RedisModule,
+    CustomerModule,
   ],
   controllers: [AppController],
   providers: [
@@ -77,6 +80,10 @@ require('events').EventEmitter.defaultMaxListeners = 0;
     {
       provide: APP_GUARD,
       useClass: AbilityGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ClientGuard
     },
     QueueService,
   ],
