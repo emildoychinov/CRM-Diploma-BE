@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Status Update Notification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .message {
+      background-color: #f8f8f8;
+      padding: 20px;
+      border-radius: 5px;
+    }
+    .reason {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="message">
+    <p>Dear {{ name }},</p>
+    <p><b>Your status in {{ client }} has been updated to </b> {{ status }}</p>
+    {{#if reason}}
+      <p><b>Description:</b></p>
+      <p class="reason">{{ reason }}</p>
+    {{/if}}
+    {{#if duration}}
+      <p><b>Duration:</b> {{ duration }}</p>
+    {{/if}}
+    <p>If you have any questions or concerns, please contact the administrator.</p>
+  </div>
+</body>
+</html>

@@ -17,8 +17,6 @@ export class UserService {
     private operatorService: OperatorService,
   ) { }
 
-
-  @AllowUnauthorizedRequest()
   async create(createUserDto: CreateUserDto) {
     const {password: rawPassword, ...userDto} = createUserDto;
     const hashedPassword = await bcrypt.hash(rawPassword, 10);

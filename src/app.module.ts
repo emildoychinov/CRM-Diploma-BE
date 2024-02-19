@@ -25,6 +25,7 @@ import { Permission } from './permissions/entities/permission.entity';
 import { Role } from './roles/entities/role.entity';
 import { CustomerModule } from './customer/customer.module';
 import { ClientGuard } from './client/client.guard';
+import { MailModule } from './mail/mail.module';
 require('events').EventEmitter.defaultMaxListeners = 0;
 
 @Module({
@@ -65,6 +66,7 @@ require('events').EventEmitter.defaultMaxListeners = 0;
     QueueModule,
     RedisModule,
     CustomerModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [
