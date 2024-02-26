@@ -39,7 +39,9 @@ export class AuthGuard implements CanActivate {
       }
 
       const user = await this.userService.findById(request.user.sub);
-      if(!user || !user.refresh_token)
+      if(!user || !user.refresh_token){
+        return false;
+      }
 
       return true;
     } catch (error) {
