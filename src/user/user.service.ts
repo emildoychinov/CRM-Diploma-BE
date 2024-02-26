@@ -53,7 +53,12 @@ export class UserService {
           return false;
         }
       }
+      if(updateUserDto.refreshToken || updateUserDto.refreshToken == null){
+        user.refresh_token = updateUserDto.refreshToken as string;
+      }
+      
       return this.userRepository.save(user);
+      
     }else{
       throw new NotFoundException('User not found');
     }

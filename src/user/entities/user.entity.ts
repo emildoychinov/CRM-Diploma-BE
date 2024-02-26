@@ -23,4 +23,8 @@ export class User {
     @OneToOne(() => Operator, (operator) => operator.user, {eager: true, nullable: true})
     @JoinColumn({ name: 'operator_id' })
     operator?: Operator;
+
+    @Column({nullable: true})
+    refresh_token?: string;
+
 }
