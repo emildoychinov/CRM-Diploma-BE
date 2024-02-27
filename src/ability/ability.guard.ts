@@ -14,8 +14,7 @@ import {
   defineAbility,
   subject,
 } from '@casl/ability';
-import { Client } from 'src/client/entities/client.entity';
-import { CHECK_ABILITY, SUBJECT_ACTIONS, SUPERUSER } from 'src/constants';
+import { CHECK_ABILITY, REQUIRE_SUPERUSER_ROLE, SUBJECT_ACTIONS} from 'src/constants';
 
 type Abilities = [string, Subject];
 export type AppAbility = MongoAbility<Abilities>;
@@ -27,22 +26,19 @@ export class AbilityGuard implements CanActivate {
     private reflector: Reflector,
     @InjectRepository(Operator)
     private operatorRepository: Repository<Operator>,
-    @InjectRepository(Client)
-    private clientRepository: Repository<Client>
 
   ) {}
 
-  async canActivate(context: ExecutionContext,): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    
+    const requireSuperuser = this.reflector.getAllAndOverride<boolean>(REQUIRE_SUPERUSER_ROLE, 
+      [context.getHandler(), context.getClass()]);
 
     const rules: any =
       this.reflector.get<RequiredRule[]>(CHECK_ABILITY, context.getHandler()) ||
       [];
     const request = context.switchToHttp().getRequest();
-    const client = request.headers['x-client'];
     
-    if(!client){
-      return false;
-    }
 
     for(const rule of rules){
       if(!(await this.findSubject(rule?.subject))){
@@ -55,10 +51,14 @@ export class AbilityGuard implements CanActivate {
         throw new NotFoundException(`Permission action ${rule.action} does not exist`);
       }
     }
+    
+    const user = request.user;
 
-    const userID = request.user.sub;
+    if(requireSuperuser || user?.is_admin){
+      return user?.is_admin;
+    }
 
-    if(userID === 'allowed'){
+    if(user?.is_authorized){
       return true;
     }
     
@@ -66,7 +66,7 @@ export class AbilityGuard implements CanActivate {
       .leftJoinAndSelect('operator.roles', 'roles')
       .leftJoinAndSelect('roles.permissions', 'permissions')
       .leftJoinAndSelect('operator.client', 'client')
-      .where('operator.user.id = :userID', { userID })
+      .where('operator.user.id = :id', { id: user.sub })
       .getOneOrFail();
     
     
@@ -74,13 +74,7 @@ export class AbilityGuard implements CanActivate {
       return false;
     }
 
-    if(operator.roles.some((role) => {
-      return role.name === SUPERUSER;
-    })){
-      return true;
-    }
-
-    if(operator?.client && operator?.client?.name !== client){
+    if(operator?.client && operator?.client?.id !== user?.client_id){
       return false;
     }
 
@@ -109,8 +103,6 @@ export class AbilityGuard implements CanActivate {
         .throwUnlessCan(rule.action, rule.subject);
     }
 
-
-
     return true;
   }
 
@@ -118,7 +110,7 @@ export class AbilityGuard implements CanActivate {
     if(!subject){
       return true;
     }
-    const table = await this.clientRepository.manager.query(
+    const table = await this.operatorRepository.manager.query(
       `SELECT EXISTS (
         SELECT 1
         FROM information_schema.tables

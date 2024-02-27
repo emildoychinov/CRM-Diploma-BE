@@ -4,7 +4,7 @@ import { User } from "src/user/entities/user.entity";
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
-//TODO: 
+
 @Entity()
 export class Operator {
     @PrimaryGeneratedColumn()
@@ -22,3 +22,4 @@ export class Operator {
     @JoinTable()
     roles?: Role[];
 }
+

@@ -14,6 +14,7 @@ export class RolesController {
   }
 
   @Get()
+  @AllowUnauthorizedRequest()
   findAll() {
     return this.rolesService.findAll();
   }
@@ -24,6 +25,7 @@ export class RolesController {
   }
 
   @Patch(':id')
+  @AllowUnauthorizedRequest()
   update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
     return this.rolesService.update(+id, updateRoleDto);
   }

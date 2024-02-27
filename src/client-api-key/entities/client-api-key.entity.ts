@@ -1,3 +1,4 @@
+import { Exclude } from "class-transformer";
 import { Client } from "src/client/entities/client.entity";
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 

@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException, forwardRef } from '@nestjs/common';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,20 +7,27 @@ import { Role } from 'src/roles/entities/role.entity';
 import { Repository } from 'typeorm';
 import { OperatorService } from 'src/operator/operator.service';
 import { Operator } from 'src/operator/entities/operator.entity';
+import { ClientApiKeyService } from 'src/client-api-key/client-api-key.service';
+import { ClientApiKey } from 'src/client-api-key/entities/client-api-key.entity';
 
 @Injectable()
 export class ClientService {
   constructor(
     @InjectRepository(Client)
-    private clientRepository: Repository<Client>,
+    private readonly clientRepository: Repository<Client>,
     @Inject(forwardRef(() => OperatorService))
-    private operatorService: OperatorService,
+    private readonly operatorService: OperatorService,
+    @Inject(forwardRef(() => ClientApiKeyService))
+    private readonly apiKeyService: ClientApiKeyService
   ) { }
 
-  create(createClientDto: CreateClientDto) {
+  async create(createClientDto: CreateClientDto) {
     try{
       const client = this.clientRepository.create(createClientDto);
-      return this.clientRepository.save(client);
+      const savedClient = await this.clientRepository.save(client);
+      const keyAndToken = await this.apiKeyService.createKey({clientID: savedClient.id});
+      savedClient.api_key = keyAndToken.key;
+      return {api_key: keyAndToken.token, client: savedClient};
     } catch (error) {
       throw new Error('Failed to create client');
     }
@@ -36,6 +43,7 @@ export class ClientService {
       .leftJoinAndSelect('client.operators', 'operators')
       .leftJoinAndSelect('operators.roles', 'roles')
       .leftJoinAndSelect('operators.user', 'user')
+      .leftJoinAndSelect('client.api_key', 'api_key')
       .where('client.name = :name', {name})
       .getOneOrFail();
   }
@@ -48,6 +56,7 @@ export class ClientService {
       .leftJoinAndSelect('operators.roles', 'roles')
       .leftJoinAndSelect('operators.user', 'user')
       .leftJoinAndSelect('client.customers', 'room_customers')
+      .leftJoinAndSelect('client.api_key', 'api_key')
       .where('client.id = :id', {id})
       .getOneOrFail();
   }
@@ -59,6 +68,22 @@ export class ClientService {
     if(client){
       if(operators && operators?.length){
         this.addOperators(client, operators);
+      }
+    }else{
+      throw new NotFoundException('Client not found');
+    }
+  }
+
+  async updateApiKey(id: number, apiKey: ClientApiKey){
+    const client = await this.findById(id);
+    if(client){
+      if(!client.api_key || 
+        (client.api_key && client.api_key.id == apiKey.id)){
+        client.api_key = apiKey;
+        await this.clientRepository.save(client);
+      }else{
+        Logger.error(`API Key ${apiKey.id} does not belong to client ${client.id}`)
+        return `API Key ${apiKey.id} does not belong to client ${client.id}`
       }
     }else{
       throw new NotFoundException('Client not found');

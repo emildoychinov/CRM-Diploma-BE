@@ -8,6 +8,7 @@ import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { Client } from 'src/client/entities/client.entity';
 import { Role } from 'src/roles/entities/role.entity';
+import { SUPERUSER } from 'src/constants';
 
 @Injectable()
 export class OperatorService {
@@ -99,10 +100,15 @@ export class OperatorService {
     
     if(operator){
       if(!operator.roles?.find(role => role.name === sanitizedRole.name)){
-        if(roleClient?.name === operator.client?.name){
+        if(roleClient?.name === operator.client?.name && sanitizedRole.name !== SUPERUSER){
           operator.roles?.push(sanitizedRole);
           return this.operatorRepository.save(operator);
-        }else{
+        }
+        else if(sanitizedRole.name === SUPERUSER){
+          operator.roles?.push(sanitizedRole);
+          return this.operatorRepository.save(operator);
+        }
+        else{
           throw new Error('Role client does not match operator client')
         }
       }else{

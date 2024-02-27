@@ -5,16 +5,19 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { LoginCustomerDto } from './dto/login-customer.dto';
 import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-unauthorized-request.decorator';
 import { StatusDto } from 'src/customer-status/dto/status.dto';
+import { RequireApiKey } from 'src/require-api-key/require-api-key.decorator';
 
 @Controller('customer')
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
   
+  @RequireApiKey()
   @Post('auth/register')
   register(@Body() createCustomerDto: CreateCustomerDto) {
     return this.customerService.register(createCustomerDto);
   }
 
+  @RequireApiKey()
   @Post('auth/login')
   login(@Body() loginCustomerDto: LoginCustomerDto) {
     return this.customerService.login(loginCustomerDto);
