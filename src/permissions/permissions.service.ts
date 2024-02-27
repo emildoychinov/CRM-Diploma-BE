@@ -48,14 +48,9 @@ export class PermissionsService {
       .getOneOrFail();
   }
 
-  update(id: number, updatePermissionDto: UpdatePermissionDto) {
-    return `This action updates a #${id} permission`;
-  }
-
   remove(id: number) {
-    return `This action removes a #${id} permission`;
+    return this.permissionRepository.delete({id});
   }
-
 
   async addRole(id: number, role: Role){
     const permission = await this.findOne(id);

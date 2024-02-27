@@ -74,6 +74,7 @@ export class AbilityGuard implements CanActivate {
       return false;
     }
 
+
     if(operator?.client && operator?.client?.id !== user?.client_id){
       return false;
     }

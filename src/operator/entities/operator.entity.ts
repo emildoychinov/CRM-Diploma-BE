@@ -14,8 +14,7 @@ export class Operator {
     @JoinColumn({ name: 'client_id' })
     client?: Client;
 
-    @OneToOne(() => User, (user) => user.operator, {nullable: true})
-    @JoinColumn({ name: 'user_id' })
+    @OneToOne(() => User, (user) => user.operator, {nullable: true, eager: true})
     user?: User;
 
     @ManyToMany(() => Role, (role) => role.operators, {nullable: true})

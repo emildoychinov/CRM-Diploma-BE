@@ -16,7 +16,7 @@ export class ClientController {
   }
 
   @RequireSuperuser()
-  @Get()
+  @Get('/all')
   findAll() {
     return this.clientService.findAll();
   }
@@ -28,13 +28,13 @@ export class ClientController {
   }
 
   @RequireSuperuser()
-  @Patch(':id')
+  @Patch('/update/:id')
   update(@Param('id') id: string, @Body() updateClientDto: UpdateClientDto) {
     return this.clientService.update(+id, updateClientDto);
   }
   
   @RequireSuperuser()
-  @Delete(':id')
+  @Delete('/delete/:id')
   remove(@Param('id') id: string) {
     return this.clientService.remove(+id);
   }

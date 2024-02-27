@@ -23,8 +23,7 @@ export class Client {
     @OneToMany(() => Role, (role) => role.client, {nullable: true})
     roles?: Role[];
 
-    @OneToOne(() => ClientApiKey, (api_key) => api_key.client, {nullable: true})
-    @JoinColumn({ name: 'access_key' })
+    @OneToOne(() => ClientApiKey, (api_key) => api_key.client, {nullable: true, eager: true})
     api_key: ClientApiKey;
 }
 

@@ -34,9 +34,9 @@ export class RolesListener {
     async addToEntityProcess(job: Job<{ 
       role: Role, entitiesDto: 
       any, entityService: 
-      EntityService }>){
+      EntityService, clientID: number }>){
 
-        const { role, entitiesDto, entityService } = job.data;;
+        const { role, entitiesDto, entityService, clientID } = job.data;;
         let service: any;
         let addRole: Function;
         switch (entityService){
@@ -56,7 +56,14 @@ export class RolesListener {
           //TODO : insert operations
           if (entitiesDto && entitiesDto.length > 0) {
             const promises = entitiesDto.map(async (entity: any) => {
-            const roleEntity = await service.addRole(entity.id, role);
+            let roleEntity;
+            
+            if(entityService == EntityService.OPERATOR)
+              roleEntity = await service.addRole(entity.id, role, {client_id: clientID});
+            
+            else
+              roleEntity = await service.addRole(entity.id, role);
+
             addRole(role, roleEntity);
           });
             await Promise.all(promises).then(async () => {

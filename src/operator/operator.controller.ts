@@ -1,38 +1,50 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { OperatorService } from './operator.service';
 import { CreateOperatorDto } from './dto/create-operator.dto';
 import { UpdateOperatorDto } from './dto/update-operator.dto';
 import { AbilityGuard } from 'src/ability/ability.guard';
 import { checkAbilites } from 'src/ability/ability.decorator';
 import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-unauthorized-request.decorator';
+import { UserRequest } from 'src/requests/user.request';
+import { RequireSuperuser } from 'src/require-superuser/require-superuser.decorator';
 
 @Controller('operator')
 export class OperatorController {
   constructor(private readonly operatorService: OperatorService) {}
 
+  @checkAbilites({ action: 'create', subject: 'operator' })
   @Post()
-  create(@Body() createOperatorDto: CreateOperatorDto) {
-    return this.operatorService.create(createOperatorDto);
+  create(@Body() createOperatorDto: CreateOperatorDto,  @Req() request: UserRequest) {
+    return this.operatorService.createOperator(createOperatorDto, request.user);
   }
 
-  @Get()
-  findAll() {
-    return this.operatorService.findAll();
+  @checkAbilites({ action: 'read', subject: 'operator' })
+  @Get('/all')
+  findAll(@Req() request: UserRequest) {
+    return this.operatorService.findAllOperators(request.user);
   }
 
-  @checkAbilites({ action: 'write', subject: 'user' })
+  @RequireSuperuser()
+  @Get('/all/:client_id')
+  findAllInClient(@Param('client_id') clientID: string){
+    return this.operatorService.findAllInClient(+clientID);
+  }
+
+  @checkAbilites({ action: 'read', subject: 'operator' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.operatorService.findOne(+id);
+  findOne(@Param('id') id: string, @Req() request: UserRequest) {
+    return this.operatorService.findOneOperator(+id, request.user);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOperatorDto: UpdateOperatorDto) {
-    return this.operatorService.update(+id, updateOperatorDto);
+  @checkAbilites({ action: 'update', subject: 'operator' })
+  @Patch('update/:id')
+  update(@Param('id') id: string, @Body() updateOperatorDto: UpdateOperatorDto, @Req() request: UserRequest) {
+    return this.operatorService.update(+id, updateOperatorDto, request.user);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.operatorService.remove(+id);
+  @checkAbilites({ action: 'delete', subject: 'operator'})
+  @Delete('delete/:id')
+  remove(@Param('id') id: string, @Req() request: UserRequest) {
+    return this.operatorService.removeOperator(+id, request);
   }
 }

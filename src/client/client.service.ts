@@ -33,8 +33,14 @@ export class ClientService {
     }
   }
 
-  findAll() {
-    return `This action returns all client`;
+  async findAll() {
+    return this.clientRepository
+      .createQueryBuilder('client')
+      .leftJoinAndSelect('client.operators', 'operators')
+      .leftJoinAndSelect('operators.roles', 'roles')
+      .leftJoinAndSelect('operators.user', 'user')
+      .leftJoinAndSelect('client.api_key', 'api_key')
+      .getMany();
   }
 
   async findByName(name: string){
@@ -125,6 +131,6 @@ export class ClientService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} client`;
+    return this.clientRepository.delete({id});
   }
 }

@@ -54,7 +54,7 @@ export class AuthService {
     };
 
     const hashedToken = await bcrypt.hash(refreshToken, 10);
-    user = await this.userService.update(user?.id as number, {refreshToken: hashedToken}) as User;
+    user = await this.userService.update(user?.id as number, {refreshToken: hashedToken}, {}) as User;
 
     return {
       access_token: this.jwtService.sign(payload),
@@ -64,7 +64,7 @@ export class AuthService {
   }
 
   async logout(userID: number){
-    return this.userService.update(userID, {refreshToken: null});
+    return this.userService.update(userID, {refreshToken: null}, {});
   }
 
   async refreshTokens(userId: number, refreshToken: string){

@@ -20,15 +20,15 @@ export class StatusListener {
       private mailService: MailService){
         this.customerService.findAll().then((customers: any) => {
           customers.forEach((customer: any) => {
-            const queue = this.queueService.getQueue(`customer.${customer.id}.${customer.client.id}`);
+            const queue = this.queueService.getQueue(`customer.${customer.id}`);
             
             this.queueService.createProcess(queue, 
-              `customer.${customer.id}.${customer.client.id}.changeAccountStatusProcess`,
+              `customer.${customer.id}.changeAccountStatusProcess`,
               this.changeAccountStatusProcess.bind(this),
             );
 
             this.queueService.createProcess(queue, 
-              `customer.${customer.id}.${customer.client.id}.sendBanMessageProcess`,
+              `customer.${customer.id}.sendBanMessageProcess`,
               this.sendBanMessageProcess.bind(this),
             );
 
@@ -45,7 +45,7 @@ export class StatusListener {
         const {customer, account_status, notes} = job.data;
         try{
 
-            await this.customerService.update(customer.id, customer.client.id, {
+            await this.customerService.update(customer.id, {client_id: customer.client.id}, {
                 account_status,
                 notes: notes ?? ''
             } as UpdateCustomerDto)
