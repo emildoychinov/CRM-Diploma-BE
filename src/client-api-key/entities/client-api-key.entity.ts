@@ -12,7 +12,7 @@ export class ClientApiKey {
     token: string;
 
     @OneToOne(() => Client, (client) => client.api_key, {nullable: true})
-    @JoinColumn({ name: 'access_key' })
+    @JoinColumn({ name: 'client_id' })
     client: Client;
 }
 

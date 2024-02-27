@@ -4,11 +4,10 @@ export const UNAUTHORIZED_REQUEST_DECORATOR = 'allowUnauthorizedRequest';
 export const REQUIRE_API_KEY = 'requireApiKey';
 export const REQUIRE_SUPERUSER_ROLE = 'requireSuperuserRole'
 export const SUBJECT_ACTIONS = [
+    'create',
     'read',
-    'write',
-    'manage',
-    'delete',
-    'create'
+    'update',
+    'delete'
 ]
 export const CHANGE_STATUS_LENGTHS = {
     MINUTE: 60 * 1000, 

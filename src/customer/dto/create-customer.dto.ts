@@ -20,10 +20,6 @@ export class CreateCustomerDto {
     number: string;
 
     @IsOptional()
-    @IsEnum(AccountStatus)
-    account_status: AccountStatus;
-
-    @IsOptional()
     notes: string;
     
     @IsObject()

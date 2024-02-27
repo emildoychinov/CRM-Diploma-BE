@@ -20,7 +20,7 @@ export class User {
     @Column({nullable: false})
     password: string;
     
-    @OneToOne(() => Operator, (operator) => operator.user, {eager: true, nullable: true})
+    @OneToOne(() => Operator, (operator) => operator.user, {nullable: true, onDelete: "CASCADE"})
     @JoinColumn({ name: 'operator_id' })
     operator?: Operator;
 

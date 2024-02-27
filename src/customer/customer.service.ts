@@ -14,6 +14,8 @@ import { CHANGE_STATUS_LENGTHS, DURATION_WORD_KEYS } from 'src/constants';
 import { StatusDto } from 'src/customer-status/dto/status.dto';
 import { MailService } from 'src/mail/mail.service';
 import { MailDto } from 'src/mail/dto/mail.dto';
+import { UserRequest } from 'src/requests/user.request';
+import Bull from 'bull';
 
 @Injectable()
 export class CustomerService {
@@ -26,18 +28,23 @@ export class CustomerService {
 
   async register(createCustomerDto: CreateCustomerDto) {
 
-    if(!createCustomerDto.account_status){
-      createCustomerDto.account_status = AccountStatus.PENDING_ACTIVATION;
-    }
-
     const {password: rawPassword, ...customerDto} = createCustomerDto;
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     const customer = this.customerRepository.create({password: hashedPassword, ...customerDto});
-
+    customer.account_status = AccountStatus.PENDING_ACTIVATION;
     try{
       await this.findByEmailAndClient(customer.email, customer.client.id);
     }catch(error){
-      await this.customerRepository.save(customer);
+      const savedCustomer = await this.customerRepository.save(customer);
+      
+      await this.enqueueStatusChange(
+        this.queueService.getQueue(`customer.${customer.id}`),
+        savedCustomer,
+        AccountStatus.ACTIVE,
+        'initial account activation',
+        CHANGE_STATUS_LENGTHS["MINUTE"]
+      )
+
       return this.authService.constructCostumerToken(customer);
     }
     throw new Error('Customer with this email already registered under client')
@@ -68,7 +75,17 @@ export class CustomerService {
     });
   }
 
+  async findByEmail(email: string){
+    return await this.customerRepository.findOneOrFail({
+      where: { 
+          email: email, 
+      },
+      relations: ['client']
+    });
+  }
+
   async findByIdAndClient(id: number, clientID: number){
+
     return await this.customerRepository.findOneOrFail({
       where: {
         id, 
@@ -76,6 +93,27 @@ export class CustomerService {
       },
       relations: ['client']
     })
+  }
+
+  async findById(id: number){
+    return await this.customerRepository.findOneOrFail({
+      where: {
+        id,
+      },
+      relations: ['client']
+    })
+  }
+
+  async findCustomers(user: any){
+    return user?.is_admin ? this.findAll() : this.findAllInClient(user.client_id);
+  }
+
+  async findCustomerById(id: number, user: any){
+    return user?.is_admin ? this.findById(id) : this.findByIdAndClient(id, user.client_id)
+  }
+
+  async findCustomerByEmail(email: string, user: any){
+    return user?.is_admin ? this.findByEmail(email) : this.findByEmailAndClient(email, user.client_id);
   }
 
   findAllInClient(clientID: number) {
@@ -91,19 +129,34 @@ export class CustomerService {
     });
   }
 
+  async enqueueStatusChange(queue: Bull.Queue, 
+    customer: Customer, 
+    status: AccountStatus, 
+    reason: string,
+    delay: number){
+      await this.queueService.add(
+        queue,
+         `customer.${customer.id}.changeAccountStatusProcess`,
+         {
+           customer,
+           account_status: status,
+           notes: reason
+         },
+         {delay}
+       )
+    }
 
-  async update(id: number, clientID: number, updateCustomerDto: UpdateCustomerDto) {
+  async update(id: number, user: any, updateCustomerDto: UpdateCustomerDto) {
     
     try{
-
-      const customer = await this.findByIdAndClient(id, clientID);
+      const customer = await this.findCustomerById(id, user);
       const {id: customerID, client: customerClient, email: customerEmail, ...sanitizedCustomer} = customer;
       if(updateCustomerDto.email && updateCustomerDto.email !== customerEmail){
         try{
-          await this.findByEmailAndClient(updateCustomerDto.email, clientID);
+          await this.findCustomerByEmail(updateCustomerDto.email, user);
         }catch(error){console.error(error)} 
         finally{
-          throw new Error(`User with email ${updateCustomerDto.email} already exists under client ${clientID}`);
+          throw new Error(`User with email ${updateCustomerDto.email} already exists under client`);
         }
       }else{
         updateCustomerDto.email = customerEmail;
@@ -118,23 +171,23 @@ export class CustomerService {
       return this.customerRepository.save(updatedCustomer)
 
     }catch(error){
-      throw new NotFoundException(`Could not find user ${updateCustomerDto.email} within client ${clientID}`);
+      throw new NotFoundException(`Could not find user ${updateCustomerDto.email} within client`);
     }
 
   }
 
-  async ban(id: number, clientID: number, statusDto: StatusDto) {
+  async ban(id: number, user: any, statusDto: StatusDto) {
     try{
-      const customer = await this.update(id, clientID, {
+      const customer = await this.update(id, user, {
         account_status: AccountStatus.BANNED,
         notes : statusDto.reason,
       } as UpdateCustomerDto);
       
-      const queue = this.queueService.getQueue(`customer.${id}.${clientID}`);
+      const queue = this.queueService.getQueue(`customer.${id}`);
 
       await this.queueService.add(
         queue,
-         `customer.${id}.${clientID}.sendBanMessageProcess`,
+         `customer.${id}.sendBanMessageProcess`,
          {
           mailDto: {
             receiver: customer.email,
@@ -147,17 +200,11 @@ export class CustomerService {
          }
       )
 
-      await this.queueService.add(
-       queue,
-        `customer.${id}.${clientID}.changeAccountStatusProcess`,
-        {
-          customer,
-          account_status: AccountStatus.PENDING_ACTIVATION,
-          notes: `Previously banned for ${statusDto.reason}`
-        },
-        {delay: CHANGE_STATUS_LENGTHS[statusDto.duration]}
+      await this.enqueueStatusChange(queue, 
+        customer, AccountStatus.PENDING_ACTIVATION,
+        `Previously banned for ${statusDto.reason}`,
+        CHANGE_STATUS_LENGTHS[statusDto.duration]
       )
-
       
       return `Customer ${customer.id} banned successfully`
     }catch(error){
@@ -165,9 +212,20 @@ export class CustomerService {
     }
   }
 
+  removeCustomer(id:number, user: any){
+    return user?.is_admin ? this.removeById(id) : this.removeByClientAndId(id, user.client_id);
+  }
 
+  removeByClientAndId(id: number, clientID: number){
+    return this.customerRepository.delete({
+      id,
+      client : {
+        id: clientID
+      }
+    })
+  }
 
-  remove(id: number) {
-    return `This action removes a #${id} customer`;
+  removeById(id: number) {
+    return this.customerRepository.delete(id);
   }
 }

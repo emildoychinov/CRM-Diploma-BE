@@ -8,9 +8,7 @@ import { Role } from 'src/roles/entities/role.entity';
 export class UpdateOperatorDto extends PartialType(CreateOperatorDto) {
 
     @IsOptional()
-    public readonly client?: Client;
-    @IsOptional()
     public readonly user?: User;
     @IsOptional()
-    public readonly roles?: Role[];
+    public readonly role?: Role;
 }

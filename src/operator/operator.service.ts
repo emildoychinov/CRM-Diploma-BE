@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException, forwardRef } from '@nestjs/common';
 import { CreateOperatorDto } from './dto/create-operator.dto';
 import { UpdateOperatorDto } from './dto/update-operator.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,13 +19,39 @@ export class OperatorService {
     private userService: UserService
   ) { }
 
-  create(createOperatorDto: CreateOperatorDto) {
+  createOperator(createOperatorDto: CreateOperatorDto, user:any) {
+    return user.is_admin ? this.createOperatorGlobally(createOperatorDto) : 
+    this.createOperatorInInstance(createOperatorDto, user.client_id);
+  }
+
+  createOperatorInInstance(createOperatorDto: CreateOperatorDto, clientID: number){
+    const {client, ...sanitizedDto} = createOperatorDto;
+    const operator = this.operatorRepository.create({
+      client: {
+        id: clientID
+      }, ...sanitizedDto})
+    return this.operatorRepository.save(operator);
+  }
+
+  createOperatorGlobally(createOperatorDto: CreateOperatorDto){
     const operator = this.operatorRepository.create(createOperatorDto);
     return this.operatorRepository.save(operator);
   }
 
-  findAll() {
-    return `This action returns all operator`;
+  async findAllOperators(user: any) {
+    return user.is_admin ? this.findAll() : this.findAllInClient(user.client_id);
+  }
+
+  async findAll(){
+    return this.operatorRepository.find({relations: ['roles', 'client']});
+  }
+
+  async findAllInClient(clientID: number){
+    return this.operatorRepository.find({where: {
+      client : {
+        id: clientID
+      }
+    }, relations: ['roles', 'client']})
   }
 
   async findOne(id: number) {
@@ -38,14 +64,29 @@ export class OperatorService {
       .getOneOrFail();
   }
 
+  async findOneInClient(id: number, clientID: number){
+    return this.operatorRepository
+      .createQueryBuilder('operator')
+      .leftJoinAndSelect('operator.user', 'user')
+      .leftJoinAndSelect('operator.client', 'client')
+      .leftJoinAndSelect('operator.roles', 'roles')
+      .where('operator.id = :id', { id })
+      .andWhere('operator.client.id = :clientID', { clientID })
+      .getOneOrFail();
+  }
+
+  async findOneOperator(id: number, user: any){
+    return user.is_admin ? this.findOne(id) : this.findOneInClient(id, user.client_id);
+  }
+
   async assignUser(id:number, user: Partial<User>){
     const operator = await this.findOne(id);
     if(operator){
-      if(operator.user){
+      if(operator.user && operator.user.id !== user.id){
         throw new Error('Cannot assign user to operator already associated with another user');
       }
       const {operator: userOperator, email, password, ...sanitizedUser} = user;
-      if(userOperator){
+      if(userOperator && userOperator.id !== operator.id){
         throw new Error('Cannot assign operator to user already associated with another operator');
       }
       operator.user = sanitizedUser as User;
@@ -73,38 +114,37 @@ export class OperatorService {
   }
 
   
-  async update(id: number, updateOperatorDto: UpdateOperatorDto) {
-    const operator = await this.findOne(id);
-    const client = updateOperatorDto.client;
-    const user = updateOperatorDto.user;
-    const roles = updateOperatorDto.roles;
-    if(operator){
-      if(user){
-        try{
-          this.userService.update(user.id, {operator: operator})
-        }catch(error){
-          console.error(error);
+  async update(id: number, updateOperatorDto: UpdateOperatorDto, user: any) {
+    const operatorUser = updateOperatorDto.user;
+    const role = updateOperatorDto.role;
+    
+    try{
+      if(user.is_admin){
+        if(operatorUser){
+          try{
+            this.userService.update(user.id, {operator: await this.findOne(id)}, user)
+          }catch(error){
+            console.error(error);
+          }
         }
       }
-
-    }else{
-      throw new NotFoundException('Operator not found');
+      if(role){
+        await this.addRole(id, role, user)
+      }
+    }catch(error){
+      Logger.error(error.message);
+      return 'An error occured updating operator';
     }
-
   }
 
-  async addRole(id: number, role: Role){
+  async addRole(id: number, role: Role, user: any){
 
-    const operator = await this.findOne(id);
+    const operator = await this.findOneOperator(id, user);
     const {operators, client: roleClient, ...sanitizedRole} = role;
     
     if(operator){
       if(!operator.roles?.find(role => role.name === sanitizedRole.name)){
         if(roleClient?.name === operator.client?.name && sanitizedRole.name !== SUPERUSER){
-          operator.roles?.push(sanitizedRole);
-          return this.operatorRepository.save(operator);
-        }
-        else if(sanitizedRole.name === SUPERUSER){
           operator.roles?.push(sanitizedRole);
           return this.operatorRepository.save(operator);
         }
@@ -119,9 +159,24 @@ export class OperatorService {
     }
     
   }
-  
 
-  remove(id: number) {
-    return `This action removes a #${id} operator`;
+
+  removeByClientAndId(id: number, clientID: number){
+    return this.operatorRepository.delete({
+      id,
+      client : {
+        id: clientID
+      }
+    })
   }
+
+  removeById(id: number) {
+    return this.operatorRepository.delete(id);
+  }
+
+  removeOperator(id: number, user:any) {
+    return user?.is_admin ? this.removeById(id) : this.removeByClientAndId(id, user.client_id);
+  }
+
+
 }

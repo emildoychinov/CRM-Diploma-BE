@@ -6,6 +6,9 @@ import { LoginCustomerDto } from './dto/login-customer.dto';
 import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-unauthorized-request.decorator';
 import { StatusDto } from 'src/customer-status/dto/status.dto';
 import { RequireApiKey } from 'src/require-api-key/require-api-key.decorator';
+import { UserRequest } from 'src/requests/user.request';
+import { RequireSuperuser } from 'src/require-superuser/require-superuser.decorator';
+import { checkAbilites } from 'src/ability/ability.decorator';
 
 @Controller('customer')
 export class CustomerController {
@@ -23,28 +26,39 @@ export class CustomerController {
     return this.customerService.login(loginCustomerDto);
   }
 
+  @checkAbilites({action: 'read', subject: 'customer'})
   @Get('/all')
-  findAll(@Req() request: any) {
-    return this.customerService.findAllInClient(request.user.client_id);
+  findAll(@Req() request: UserRequest) {
+    return this.customerService.findCustomers(request.user);
   }
 
+  @RequireSuperuser()
+  @Get('/all/:client_id')
+  findAllInClient(@Param('client_id') clientID: string) {
+    return this.customerService.findAllInClient(+clientID)
+  }
+
+  @checkAbilites({action: 'read', subject: 'customer'})
   @Get(':id')
-  findOne(@Param('id') id: string, @Req() request: any) {
-    return this.customerService.findByIdAndClient(+id, request.user.client_id);
+  findOne(@Param('id') id: string, @Req() request: UserRequest) {
+    return this.customerService.findCustomerById(+id, request.user);
   }
 
+  @checkAbilites({action: 'update', subject: 'customer'})
   @Patch('ban/:id')
-  ban(@Param('id') id: string, @Body() statusDto: StatusDto, @Req() request: any){
-    return this.customerService.ban(+id, request.user.client_id, statusDto)
+  ban(@Param('id') id: string, @Body() statusDto: StatusDto, @Req() request: UserRequest){
+    return this.customerService.ban(+id, request.user, statusDto)
   }
   
+  @checkAbilites({action: 'update', subject: 'customer'})
   @Patch('update/:id')
-  update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto, @Req() request: any) {
-    return this.customerService.update(+id, request.user.client_id, updateCustomerDto);
+  update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto, @Req() request: UserRequest) {
+    return this.customerService.update(+id, request.user, updateCustomerDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.customerService.remove(+id);
+  @checkAbilites({action: 'delete', subject: 'customer'})
+  @Delete('delete/:id')
+  remove(@Param('id') id: string, @Req() request: UserRequest) {
+    return this.customerService.removeCustomer(+id, request.user);
   }
 }

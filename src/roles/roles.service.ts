@@ -5,12 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from './entities/role.entity';
 import { Repository } from 'typeorm';
 import { ClientService } from 'src/client/client.service';
-import { Operator } from 'src/operator/entities/operator.entity';
-import { OperatorService } from 'src/operator/operator.service';
 import { SUPERUSER } from 'src/constants';
-import { PermissionsService } from 'src/permissions/permissions.service';
 import { Client } from 'src/client/entities/client.entity';
-import { Permission } from 'src/permissions/entities/permission.entity';
 import { QueueService } from 'src/queue/queue.service';
 import { RolesListener } from 'src/roles/roles.listener';
 import { EntityService } from 'src/enums/role.entities.enum';
@@ -22,23 +18,66 @@ export class RolesService {
     private roleRepository: Repository<Role>,
     @Inject(forwardRef(() => ClientService))
     private clientService: ClientService,
-    @Inject(forwardRef(() => OperatorService))
-    private operatorService: OperatorService,
-    @Inject(PermissionsService)
-    private permissionService: PermissionsService,
     private readonly queueService: QueueService,
   ) {}
-  create(createRoleDto: CreateRoleDto) {
-    if(createRoleDto.name != SUPERUSER){
-      const role = this.roleRepository.create(createRoleDto);
-      return this.roleRepository.save(role);
-    }else{
-      throw new UnauthorizedException("Not allowed to create superusers.")
-    }
+
+  createRole(createOperatorDto: CreateRoleDto, user:any) {
+    return user.is_admin ? this.createOperatorGlobally(createOperatorDto) : 
+    this.createRoleInInstance(createOperatorDto, user.client_id);
+  }
+
+  createRoleInInstance(createRoleDto: CreateRoleDto, clientID: number){
+    const {client, ...sanitizedDto} = createRoleDto;
+    const role = this.roleRepository.create({
+      client: {
+        id: clientID
+      }, ...sanitizedDto})
+    return this.roleRepository.save(role);
+  }
+
+  createOperatorGlobally(createRoleDto: CreateRoleDto){
+    const role = this.roleRepository.create(createRoleDto);
+    return this.roleRepository.save(role);
+  }
+
+  findAllInClient(clientID: number) {
+    return this.roleRepository.find({
+      where: { 
+        client: {id : clientID}
+      }, relations:['permissions', 'client']})
   }
 
   findAll() {
-    return this.roleRepository.find();
+    return this.roleRepository.find({
+      relations:['permissions', 'client']
+    });
+  }
+
+  async findRoles(user: any){
+    return user?.is_admin ? this.findAll() : this.findAllInClient(user.client_id);
+  }
+
+  async findByIdAndClient(id: number, clientID: number){
+    return this.roleRepository.createQueryBuilder('role')
+    .leftJoinAndSelect('role.client', 'client')
+    .leftJoinAndSelect('role.operators', 'operators')
+    .leftJoinAndSelect('role.permissions', 'permissions')
+    .where('role.id = :id', { id })
+    .andWhere('role.client.id = :clientID', { clientID })
+    .getOne()
+  }
+
+  async findById(id: number) {
+    return this.roleRepository.createQueryBuilder('role')
+    .leftJoinAndSelect('role.client', 'client')
+    .leftJoinAndSelect('role.operators', 'operators')
+    .leftJoinAndSelect('role.permissions', 'permissions')
+    .where('role.id = :id', { id })
+    .getOne()
+  }
+
+  async findRole(id: number, user: any){
+    return user?.is_admin ? this.findById(id) : this.findByIdAndClient(id, user.client_id)
   }
 
   findByName(name: string){
@@ -49,15 +88,6 @@ export class RolesService {
     .where('role.name = :name', { name })
     .getOne();
   }
-  
-  findById(id: number) {
-    return this.roleRepository.createQueryBuilder('role')
-    .leftJoinAndSelect('role.client', 'client')
-    .leftJoinAndSelect('role.operators', 'operators')
-    .leftJoinAndSelect('role.permissions', 'permissions')
-    .where('role.id = :id', { id })
-    .getOne()
-  }
 
   async saveOne(role: Role){
     return await this.roleRepository.save(role);
@@ -66,25 +96,29 @@ export class RolesService {
 
   //TODO : find a way to return data back to the client
   
-  async update(id: number, updateRoleDto: UpdateRoleDto) {
-    const role = await this.findById(id);
+  async update(id: number, updateRoleDto: UpdateRoleDto, user: any) {
+    let role = await this.findRole(id, user);
     if (!role) {
         throw new NotFoundException('Role not found');
     }
 
     try {
-      await this.updateClient(role, updateRoleDto.client);
-
+      if(user.is_admin){
+        role = await this.updateClient(role, updateRoleDto.client);
+      }
+      
       await this.enqueueUpdateEntities(
         role, 
         updateRoleDto.operators, 
         EntityService.OPERATOR, 
+        role.client ? role.client.id : undefined
       );
 
       await this.enqueueUpdateEntities(
         role, 
         updateRoleDto.permissions, 
-        EntityService.PERMISSION, 
+        EntityService.PERMISSION,
+        role.client ? role.client.id : undefined
       );
 
     } catch (error) {
@@ -94,23 +128,14 @@ export class RolesService {
   }
 
   private async updateClient(role: Role, clientDto: Partial<Client> | undefined) {
-      if (clientDto) {
-          const roleClient = await this.clientService.addRole(clientDto.id as number, role);
-          role.client = roleClient;
-      }
-  }
-
-  private async updateEntities(role: Role, entitiesDto: any[] | undefined, service: any, addRoleCallback: Function) {
-    if (entitiesDto && entitiesDto.length > 0) {
-        const promises = entitiesDto.map(async entity => {
-            const roleEntity = await service.addRole(entity.id, role);
-            addRoleCallback(role, roleEntity);
-        });
-        await Promise.all(promises);
+    if (clientDto) {
+      const roleClient = await this.clientService.addRole(clientDto.id as number, role);
+      role.client = roleClient;
     }
+    return role;
   }
 
-  private async enqueueUpdateEntities(role: Role, entitiesDto: any[] | undefined, service: EntityService) {
+  private async enqueueUpdateEntities(role: Role, entitiesDto: any[] | undefined, service: EntityService, clientID: number | undefined) {
     
     await this.queueService.add(
       this.queueService.getQueue(`role.${role.id}`),
@@ -118,14 +143,28 @@ export class RolesService {
         {
           role,
           entitiesDto,
-          entityService: service
+          entityService: service,
+          clientID
         }
       );
 
   } 
 
-
-  remove(id: number) {
-    return `This action removes a #${id} role`;
+  removeRole(id:number, user: any){
+    return user?.is_admin ? this.removeById(id) : this.removeByClientAndId(id, user.client_id);
   }
+
+  removeByClientAndId(id: number, clientID: number){
+    return this.roleRepository.delete({
+      id,
+      client : {
+        id: clientID
+      }
+    })
+  }
+
+  removeById(id: number) {
+    return this.roleRepository.delete(id);
+  }
+
 }
