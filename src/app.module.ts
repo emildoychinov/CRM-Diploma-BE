@@ -26,6 +26,8 @@ import { Role } from './roles/entities/role.entity';
 import { CustomerModule } from './customer/customer.module';
 import { ClientGuard } from './client/client.guard';
 import { MailModule } from './mail/mail.module';
+import { ClientApiKeyModule } from './client-api-key/client-api-key.module';
+import { ClientApiKey } from './client-api-key/entities/client-api-key.entity';
 require('events').EventEmitter.defaultMaxListeners = 0;
 
 @Module({
@@ -55,7 +57,7 @@ require('events').EventEmitter.defaultMaxListeners = 0;
         synchronize: true,
       }),
     }),
-    TypeOrmModule.forFeature([Operator, User, Client, Permission, Role]),
+    TypeOrmModule.forFeature([Operator, User, Client, Permission, Role, ClientApiKey]),
     ClientModule,
     OperatorModule,
     UserModule,
@@ -67,6 +69,7 @@ require('events').EventEmitter.defaultMaxListeners = 0;
     RedisModule,
     CustomerModule,
     MailModule,
+    ClientApiKeyModule,
   ],
   controllers: [AppController],
   providers: [
