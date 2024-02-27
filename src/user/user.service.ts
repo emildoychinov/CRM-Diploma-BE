@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { OperatorService } from 'src/operator/operator.service';
 import * as bcrypt from 'bcrypt';
 import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-unauthorized-request.decorator';
+import { Operator } from 'src/operator/entities/operator.entity';
 
 @Injectable()
 export class UserService {
@@ -21,7 +22,11 @@ export class UserService {
     const {password: rawPassword, ...userDto} = createUserDto;
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     const user = this.userRepository.create({password: hashedPassword, ...userDto});
-    return this.userRepository.save(user);
+    const savedUser =  await this.userRepository.save(user);
+    if(createUserDto.operator){
+      this.operatorService.assignUser(createUserDto.operator.id as number, savedUser);
+    }
+    return savedUser;
   }
 
   findByEmail(email: string){
@@ -44,23 +49,26 @@ export class UserService {
     const user = await this.findById(id);
     const operator = updateUserDto.operator;
     if(user){
-      if(updateUserDto.operator){
-        try{
-          const userOperator = await this.operatorService.assignUser(operator?.id as number, user);
-          user.operator = userOperator;
-        }catch(error){
-          console.error(error);
-          return false;
-        }
+      if(operator){
+        const userOperator = await this.assignOperator(user, operator);
+        user.operator = userOperator;
       }
-      if(updateUserDto.refreshToken || updateUserDto.refreshToken == null){
+      if(updateUserDto.refreshToken || updateUserDto.refreshToken == null)
         user.refresh_token = updateUserDto.refreshToken as string;
-      }
       
       return this.userRepository.save(user);
       
     }else{
       throw new NotFoundException('User not found');
+    }
+  }
+
+  async assignOperator(user:User, operator:Partial<Operator>){
+    try{
+      const userOperator = await this.operatorService.assignUser(operator?.id as number, user);
+      return userOperator;
+    }catch(error){
+      throw new Error(error.message);
     }
   }
 

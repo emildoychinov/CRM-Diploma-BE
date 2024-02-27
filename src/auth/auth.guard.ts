@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { UNAUTHORIZED_REQUEST_DECORATOR } from 'src/constants';
+import { REQUIRE_API_KEY, UNAUTHORIZED_REQUEST_DECORATOR } from 'src/constants';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -10,11 +10,23 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const allowUnauthorizedRequest = this.reflector.getAllAndOverride<boolean>(UNAUTHORIZED_REQUEST_DECORATOR, [context.getHandler(), context.getClass()]);
-    if(allowUnauthorizedRequest){
-      request.user = {sub : 'allowed'};
+    const allowUnauthorizedRequest = this.reflector.getAllAndOverride<boolean>(UNAUTHORIZED_REQUEST_DECORATOR, 
+      [context.getHandler(), 
+      context.getClass()]);
+    const allowClientAPIRequest = this.reflector.getAllAndOverride<boolean>(REQUIRE_API_KEY, 
+      [context.getHandler(), 
+      context.getClass()]);
+    
+
+    if(allowClientAPIRequest){
+      request.user = {...request.user, is_api: true};
     }
-    return allowUnauthorizedRequest || (await this.validateRequest(request));
+
+    if(allowUnauthorizedRequest){
+      request.user = {...request.user, is_authorized: true};
+    }
+
+    return allowClientAPIRequest || allowUnauthorizedRequest || (await this.validateRequest(request));
   }
 
   async validateRequest(request: any): Promise<boolean> {

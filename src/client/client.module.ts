@@ -9,13 +9,16 @@ import { OperatorModule } from 'src/operator/operator.module';
 import { UserModule } from 'src/user/user.module';
 import { User } from 'src/user/entities/user.entity';
 import { Role } from 'src/roles/entities/role.entity';
+import { ClientApiKey } from 'src/client-api-key/entities/client-api-key.entity';
+import { ClientApiKeyModule } from 'src/client-api-key/client-api-key.module';
 
 @Module({
   imports: [
     ConfigModule, 
     forwardRef(() => OperatorModule), 
     forwardRef(() => UserModule), 
-    TypeOrmModule.forFeature([Client, Operator, User, Role])
+    forwardRef(() => ClientApiKeyModule),
+    TypeOrmModule.forFeature([Client, Operator, User, Role, ClientApiKey])
   ],
   controllers: [ClientController],
   providers: [ClientService],

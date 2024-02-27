@@ -26,6 +26,11 @@ import { Role } from './roles/entities/role.entity';
 import { CustomerModule } from './customer/customer.module';
 import { ClientGuard } from './client/client.guard';
 import { MailModule } from './mail/mail.module';
+import { ClientApiKeyModule } from './client-api-key/client-api-key.module';
+import { ClientApiKey } from './client-api-key/entities/client-api-key.entity';
+import { ClientApiKeyGuard } from './client-api-key/client-api-key.guard';
+import { SuperuserGuard } from './ability/superuser.guard';
+import { OperatorService } from './operator/operator.service';
 require('events').EventEmitter.defaultMaxListeners = 0;
 
 @Module({
@@ -55,7 +60,7 @@ require('events').EventEmitter.defaultMaxListeners = 0;
         synchronize: true,
       }),
     }),
-    TypeOrmModule.forFeature([Operator, User, Client, Permission, Role]),
+    TypeOrmModule.forFeature([Operator, User, Client, Permission, Role, ClientApiKey]),
     ClientModule,
     OperatorModule,
     UserModule,
@@ -67,6 +72,7 @@ require('events').EventEmitter.defaultMaxListeners = 0;
     RedisModule,
     CustomerModule,
     MailModule,
+    ClientApiKeyModule,
   ],
   controllers: [AppController],
   providers: [
@@ -81,11 +87,19 @@ require('events').EventEmitter.defaultMaxListeners = 0;
     },
     {
       provide: APP_GUARD,
-      useClass: AbilityGuard
+      useClass: SuperuserGuard,
     },
     {
       provide: APP_GUARD,
       useClass: ClientGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ClientApiKeyGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AbilityGuard
     },
     QueueService,
   ],

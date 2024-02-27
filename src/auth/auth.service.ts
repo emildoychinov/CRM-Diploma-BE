@@ -6,6 +6,7 @@ import { AuthUserDto } from './dto/auth-user.dto';
 import { Customer } from 'src/customer/entities/customer.entity';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
+import { Client } from 'src/client/entities/client.entity';
 
 @Injectable()
 export class AuthService {
@@ -86,5 +87,13 @@ export class AuthService {
       }
   }
 
+  constructApiKey(clientID: number){
+    const payload = { sub : clientID }
+    const apiKeyOptions = {
+      secret: this.configService.get<string>('JWT_API_KEY_SECRET'),
+      expiresIn: '30d',
+    }
+    return this.jwtService.sign(payload, apiKeyOptions)
 
+  }
 }
