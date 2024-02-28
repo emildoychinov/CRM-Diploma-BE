@@ -2,8 +2,8 @@ import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/commo
 import { Observable } from 'rxjs';
 import { ClientService } from '../../client/client.service';
 import { Reflector } from '@nestjs/core';
-import { REQUIRE_API_KEY } from 'src/constants';
 import * as bcrypt from 'bcrypt'
+import { DecoratorMetadata } from 'src/enums/decorator.enum';
 
 @Injectable()
 export class ClientGuard implements CanActivate {
@@ -16,7 +16,7 @@ export class ClientGuard implements CanActivate {
     const user = request.user;
     const client = request.headers['x-client'];
     let clientApiKey = '';
-    const requireApiKey = this.reflector.getAllAndOverride<boolean>(REQUIRE_API_KEY, [context.getHandler(), context.getClass()]);
+    const requireApiKey = this.reflector.getAllAndOverride<boolean>(DecoratorMetadata.REQUIRE_API_KEY, [context.getHandler(), context.getClass()]);
 
     if(user?.is_authorized || user?.is_admin){
       return true;

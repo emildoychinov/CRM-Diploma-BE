@@ -1,10 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { REQUIRE_API_KEY } from 'src/constants';
 import * as bcrypt from 'bcrypt'
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { DecoratorMetadata } from 'src/enums/decorator.enum';
 
 @Injectable()
 export class ClientApiKeyGuard implements CanActivate {
@@ -15,7 +15,7 @@ export class ClientApiKeyGuard implements CanActivate {
     context: ExecutionContext,
   ): Promise<boolean> {
     
-    const requireApiKey = this.reflector.getAllAndOverride<boolean>(REQUIRE_API_KEY, 
+    const requireApiKey = this.reflector.getAllAndOverride<boolean>(DecoratorMetadata.REQUIRE_API_KEY, 
       [context.getHandler(), 
         context.getClass()]);
     const request = context.switchToHttp().getRequest();

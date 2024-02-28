@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { CHECK_ABILITY } from 'src/constants';
+import { DecoratorMetadata } from 'src/enums/decorator.enum';
 import { SubjectActions } from 'src/enums/subject-actions.enum';
 export interface RequiredRule {
   action: SubjectActions;
@@ -8,4 +8,4 @@ export interface RequiredRule {
 }
 
 export const checkAbilites = (...requirements: RequiredRule[]) =>
-  SetMetadata(CHECK_ABILITY, requirements);
+  SetMetadata(DecoratorMetadata.CHECK_ABILITY, requirements);

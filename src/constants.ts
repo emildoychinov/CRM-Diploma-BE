@@ -1,8 +1,4 @@
 export const SUPERUSER = 'superuser';
-export const CHECK_ABILITY = 'checkAbility';
-export const UNAUTHORIZED_REQUEST_DECORATOR = 'allowUnauthorizedRequest';
-export const REQUIRE_API_KEY = 'requireApiKey';
-export const REQUIRE_SUPERUSER_ROLE = 'requireSuperuserRole'
 export const CHANGE_STATUS_LENGTHS = {
     MINUTE: 60 * 1000, 
     TEN_MINUTES: 10 * 60 * 1000, 

@@ -13,7 +13,7 @@ import {
   subject,
 } from '@casl/ability';
 import { SubjectActions } from 'src/enums/subject-actions.enum';
-import { CHECK_ABILITY, REQUIRE_SUPERUSER_ROLE } from 'src/constants';
+import { DecoratorMetadata } from 'src/enums/decorator.enum';
 
 type Abilities = [string, Subject];
 export type AppAbility = MongoAbility<Abilities>;
@@ -30,11 +30,11 @@ export class AbilityGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     
-    const requireSuperuser = this.reflector.getAllAndOverride<boolean>(REQUIRE_SUPERUSER_ROLE, 
+    const requireSuperuser = this.reflector.getAllAndOverride<boolean>(DecoratorMetadata.REQUIRE_SUPERUSER_ROLE, 
       [context.getHandler(), context.getClass()]);
 
     const rules: any =
-      this.reflector.get<RequiredRule[]>(CHECK_ABILITY, context.getHandler()) ||
+      this.reflector.get<RequiredRule[]>(DecoratorMetadata.CHECK_ABILITY, context.getHandler()) ||
       [];
     const request = context.switchToHttp().getRequest();
     

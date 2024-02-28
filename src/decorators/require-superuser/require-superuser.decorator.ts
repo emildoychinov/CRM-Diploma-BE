@@ -1,4 +1,4 @@
 import { SetMetadata } from '@nestjs/common';
-import { REQUIRE_SUPERUSER_ROLE } from 'src/constants';
+import { DecoratorMetadata } from 'src/enums/decorator.enum';
 
-export const RequireSuperuser = (...args: string[]) => SetMetadata(REQUIRE_SUPERUSER_ROLE, args);
+export const RequireSuperuser = (...args: string[]) => SetMetadata(DecoratorMetadata.REQUIRE_SUPERUSER_ROLE, args);

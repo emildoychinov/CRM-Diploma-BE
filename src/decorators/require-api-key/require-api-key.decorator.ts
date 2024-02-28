@@ -1,4 +1,4 @@
 import { SetMetadata } from '@nestjs/common';
-import { REQUIRE_API_KEY } from 'src/constants';
+import { DecoratorMetadata } from 'src/enums/decorator.enum';
 
-export const RequireApiKey = (...args: string[]) => SetMetadata(REQUIRE_API_KEY, args);
+export const RequireApiKey = (...args: string[]) => SetMetadata(DecoratorMetadata.REQUIRE_API_KEY, args);
