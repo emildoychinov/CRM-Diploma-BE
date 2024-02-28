@@ -1,4 +1,4 @@
-import { ClientApiKeyGuard } from './client-api-key.guard';
+import { ClientApiKeyGuard } from '../guards/client/api-key/client-api-key.guard';
 
 describe('ClientApiKeyGuard', () => {
   it('should be defined', () => {

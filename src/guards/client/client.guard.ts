@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { ClientService } from './client.service';
+import { ClientService } from '../../client/client.service';
 import { Reflector } from '@nestjs/core';
 import { REQUIRE_API_KEY } from 'src/constants';
 import * as bcrypt from 'bcrypt'
