@@ -29,7 +29,7 @@ import { MailModule } from './mail/mail.module';
 import { ClientApiKeyModule } from './client-api-key/client-api-key.module';
 import { ClientApiKey } from './client-api-key/entities/client-api-key.entity';
 import { ClientApiKeyGuard } from './guards/client/api-key/client-api-key.guard';
-import { SuperuserGuard } from './ability/superuser.guard';
+import { SuperuserGuard } from './guards/superuser/superuser.guard';
 import { OperatorService } from './operator/operator.service';
 require('events').EventEmitter.defaultMaxListeners = 0;
 

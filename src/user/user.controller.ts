@@ -5,30 +5,31 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { checkAbilites } from 'src/decorators/ability/ability.decorator';
 import { UserRequest } from 'src/interfaces/requests/user.request';
 import { RequireSuperuser } from 'src/decorators/require-superuser/require-superuser.decorator';
+import { SubjectActions } from 'src/enums/subject-actions.enum';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @checkAbilites({action: 'create', subject: 'user'})
+  @checkAbilites({action: SubjectActions.CREATE, subject: 'user'})
   @Post('/create')
   create(@Body() createUserDto: CreateUserDto, @Req() request: UserRequest) {
     return this.userService.create(createUserDto, request.user);
   }
 
-  @checkAbilites({action: 'read', subject: 'user'})
+  @checkAbilites({action: SubjectActions.READ, subject: 'user'})
   @Get(':id')
   findOne(@Param('id') id: string, @Req() request: UserRequest) {
     return this.userService.findUserById(+id, request.user);
   }
 
-  @checkAbilites({action: 'read', subject: 'user'})
+  @checkAbilites({action: SubjectActions.READ, subject: 'user'})
   @Get()
   findByEmail(@Query('email') email: string, @Req() request: UserRequest){
     return this.userService.findUserByEmail(email, request.user);
   }
 
-  @checkAbilites({action: 'read', subject: 'user'})
+  @checkAbilites({action: SubjectActions.READ, subject: 'user'})
   @Get('/all')
   findAll(@Req() request: UserRequest) {
     return this.userService.findUsers(request.user);
@@ -40,13 +41,13 @@ export class UserController {
     return this.userService.findAllInClient(+clientID)
   }
 
-  @checkAbilites({action: 'update', subject: 'user'})
+  @checkAbilites({action: SubjectActions.UPDATE, subject: 'user'})
   @Patch('/update/:id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Req() request: UserRequest) {
     return await this.userService.update(+id, updateUserDto, request.user);
   }
 
-  @checkAbilites({action: 'delete', subject: 'user'})
+  @checkAbilites({action: SubjectActions.DELETE, subject: 'user'})
   @Delete('/delete/:id')
   remove(@Param('id') id: string, @Req() request: UserRequest) {
     return this.userService.removeUser(+id, request.user);

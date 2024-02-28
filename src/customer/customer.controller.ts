@@ -9,6 +9,7 @@ import { RequireApiKey } from 'src/decorators/require-api-key/require-api-key.de
 import { UserRequest } from 'src/interfaces/requests/user.request';
 import { RequireSuperuser } from 'src/decorators/require-superuser/require-superuser.decorator';
 import { checkAbilites } from 'src/decorators/ability/ability.decorator';
+import { SubjectActions } from 'src/enums/subject-actions.enum';
 
 @Controller('customer')
 export class CustomerController {
@@ -32,7 +33,7 @@ export class CustomerController {
     return this.customerService.deactivate(+id);
   }
 
-  @checkAbilites({action: 'read', subject: 'customer'})
+  @checkAbilites({action: SubjectActions.READ, subject: 'customer'})
   @Get('/all')
   findAll(@Req() request: UserRequest) {
     return this.customerService.findCustomers(request.user);
@@ -44,25 +45,25 @@ export class CustomerController {
     return this.customerService.findAllInClient(+clientID)
   }
 
-  @checkAbilites({action: 'read', subject: 'customer'})
+  @checkAbilites({action: SubjectActions.READ, subject: 'customer'})
   @Get(':id')
   findOne(@Param('id') id: string, @Req() request: UserRequest) {
     return this.customerService.findCustomerById(+id, request.user);
   }
 
-  @checkAbilites({action: 'update', subject: 'customer'})
+  @checkAbilites({action: SubjectActions.UPDATE, subject: 'customer'})
   @Patch('ban/:id')
   ban(@Param('id') id: string, @Body() statusDto: StatusDto, @Req() request: UserRequest){
     return this.customerService.ban(+id, request.user, statusDto)
   }
   
-  @checkAbilites({action: 'update', subject: 'customer'})
+  @checkAbilites({action: SubjectActions.UPDATE, subject: 'customer'})
   @Patch('update/:id')
   update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto, @Req() request: UserRequest) {
     return this.customerService.update(+id, request.user, updateCustomerDto);
   }
 
-  @checkAbilites({action: 'delete', subject: 'customer'})
+  @checkAbilites({action: SubjectActions.DELETE, subject: 'customer'})
   @Delete('delete/:id')
   remove(@Param('id') id: string, @Req() request: UserRequest) {
     return this.customerService.removeCustomer(+id, request.user);

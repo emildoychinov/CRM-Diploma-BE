@@ -1,10 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Operator } from 'src/operator/entities/operator.entity';
 import { Permission } from 'src/permissions/entities/permission.entity';
-import { Role } from 'src/roles/entities/role.entity';
 import { Repository } from 'typeorm';
 import { RequiredRule } from '../../decorators/ability/ability.decorator';
 import {
@@ -14,7 +12,8 @@ import {
   defineAbility,
   subject,
 } from '@casl/ability';
-import { CHECK_ABILITY, REQUIRE_SUPERUSER_ROLE, SUBJECT_ACTIONS} from 'src/constants';
+import { SubjectActions } from 'src/enums/subject-actions.enum';
+import { CHECK_ABILITY, REQUIRE_SUPERUSER_ROLE } from 'src/constants';
 
 type Abilities = [string, Subject];
 export type AppAbility = MongoAbility<Abilities>;
@@ -46,7 +45,7 @@ export class AbilityGuard implements CanActivate {
         throw new NotFoundException(`Permission subject ${rule.subject} does not exist`);
       }
 
-      if(rule.action && !SUBJECT_ACTIONS.includes(rule.action)){
+      if (!(rule.action in SubjectActions)) {
         Logger.error(`Permission action ${rule.action} does not exist`);
         throw new NotFoundException(`Permission action ${rule.action} does not exist`);
       }
