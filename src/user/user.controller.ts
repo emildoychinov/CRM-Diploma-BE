@@ -2,9 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Que
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { checkAbilites } from 'src/ability/ability.decorator';
+import { checkAbilites } from 'src/decorators/ability/ability.decorator';
 import { UserRequest } from 'src/requests/user.request';
-import { RequireSuperuser } from 'src/require-superuser/require-superuser.decorator';
+import { RequireSuperuser } from 'src/decorators/require-superuser/require-superuser.decorator';
 
 @Controller('user')
 export class UserController {

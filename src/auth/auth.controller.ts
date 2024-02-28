@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Req, Request, UseGuards } from '@nestjs/co
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthUserDto } from './dto/auth-user.dto';
-import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-unauthorized-request.decorator';
+import { AllowUnauthorizedRequest } from 'src/decorators/allow-unauthorized-request/allow-unauthorized-request.decorator';
 import { UserRequest } from 'src/requests/user.request';
 
 @Controller('auth')

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ClientApiKeyService } from './client-api-key.service';
 import { CreateClientApiKeyDto } from './dto/create-client-api-key.dto';
 import { UpdateClientApiKeyDto } from './dto/update-client-api-key.dto';
-import { RequireSuperuser } from 'src/require-superuser/require-superuser.decorator';
+import { RequireSuperuser } from 'src/decorators/require-superuser/require-superuser.decorator';
 
 @Controller('client-api')
 export class ClientApiKeyController {

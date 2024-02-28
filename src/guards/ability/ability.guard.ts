@@ -6,7 +6,7 @@ import { Operator } from 'src/operator/entities/operator.entity';
 import { Permission } from 'src/permissions/entities/permission.entity';
 import { Role } from 'src/roles/entities/role.entity';
 import { Repository } from 'typeorm';
-import { RequiredRule } from '../../ability/ability.decorator';
+import { RequiredRule } from '../../decorators/ability/ability.decorator';
 import {
   ForbiddenError,
   MongoAbility,

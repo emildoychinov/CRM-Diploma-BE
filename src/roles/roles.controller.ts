@@ -2,10 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-unauthorized-request.decorator';
+import { AllowUnauthorizedRequest } from 'src/decorators/allow-unauthorized-request/allow-unauthorized-request.decorator';
 import { UserRequest } from 'src/requests/user.request';
-import { RequireSuperuser } from 'src/require-superuser/require-superuser.decorator';
-import { checkAbilites } from 'src/ability/ability.decorator';
+import { RequireSuperuser } from 'src/decorators/require-superuser/require-superuser.decorator';
+import { checkAbilites } from 'src/decorators/ability/ability.decorator';
 
 @Controller('roles')
 export class RolesController {

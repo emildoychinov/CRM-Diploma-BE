@@ -6,7 +6,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { OperatorService } from 'src/operator/operator.service';
 import * as bcrypt from 'bcrypt';
-import { AllowUnauthorizedRequest } from 'src/allow-unauthorized-request/allow-unauthorized-request.decorator';
+import { AllowUnauthorizedRequest } from 'src/decorators/allow-unauthorized-request/allow-unauthorized-request.decorator';
 import { Operator } from 'src/operator/entities/operator.entity';
 import { CreateOperatorDto } from 'src/operator/dto/create-operator.dto';
 
