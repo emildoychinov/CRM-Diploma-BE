@@ -5,7 +5,7 @@ import { UpdateOperatorDto } from './dto/update-operator.dto';
 import { AbilityGuard } from 'src/guards/ability/ability.guard';
 import { checkAbilites } from 'src/decorators/ability/ability.decorator';
 import { AllowUnauthorizedRequest } from 'src/decorators/allow-unauthorized-request/allow-unauthorized-request.decorator';
-import { UserRequest } from 'src/requests/user.request';
+import { UserRequest } from 'src/interfaces/requests/user.request';
 import { RequireSuperuser } from 'src/decorators/require-superuser/require-superuser.decorator';
 
 @Controller('operator')

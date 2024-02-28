@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthUserDto } from './dto/auth-user.dto';
 import { AllowUnauthorizedRequest } from 'src/decorators/allow-unauthorized-request/allow-unauthorized-request.decorator';
-import { UserRequest } from 'src/requests/user.request';
+import { UserRequest } from 'src/interfaces/requests/user.request';
 
 @Controller('auth')
 export class AuthController {

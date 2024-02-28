@@ -6,7 +6,7 @@ import { LoginCustomerDto } from './dto/login-customer.dto';
 import { AllowUnauthorizedRequest } from 'src/decorators/allow-unauthorized-request/allow-unauthorized-request.decorator';
 import { StatusDto } from 'src/customer-status/dto/status.dto';
 import { RequireApiKey } from 'src/decorators/require-api-key/require-api-key.decorator';
-import { UserRequest } from 'src/requests/user.request';
+import { UserRequest } from 'src/interfaces/requests/user.request';
 import { RequireSuperuser } from 'src/decorators/require-superuser/require-superuser.decorator';
 import { checkAbilites } from 'src/decorators/ability/ability.decorator';
 

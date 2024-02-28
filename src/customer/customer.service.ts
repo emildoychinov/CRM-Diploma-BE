@@ -14,7 +14,7 @@ import { CHANGE_STATUS_LENGTHS, DURATION_WORD_KEYS } from 'src/constants';
 import { StatusDto } from 'src/customer-status/dto/status.dto';
 import { MailService } from 'src/mail/mail.service';
 import { MailDto } from 'src/mail/dto/mail.dto';
-import { UserRequest } from 'src/requests/user.request';
+import { UserRequest } from 'src/interfaces/requests/user.request';
 import Bull from 'bull';
 import Redis from 'ioredis';
 

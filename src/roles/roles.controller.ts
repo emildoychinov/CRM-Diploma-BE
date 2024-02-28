@@ -3,7 +3,7 @@ import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AllowUnauthorizedRequest } from 'src/decorators/allow-unauthorized-request/allow-unauthorized-request.decorator';
-import { UserRequest } from 'src/requests/user.request';
+import { UserRequest } from 'src/interfaces/requests/user.request';
 import { RequireSuperuser } from 'src/decorators/require-superuser/require-superuser.decorator';
 import { checkAbilites } from 'src/decorators/ability/ability.decorator';
 
