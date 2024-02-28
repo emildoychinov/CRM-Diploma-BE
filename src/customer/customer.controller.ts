@@ -26,6 +26,12 @@ export class CustomerController {
     return this.customerService.login(loginCustomerDto);
   }
 
+  @RequireApiKey()
+  @Patch('/deactivate/:id')
+  deactivate(@Param('id') id: string){
+    return this.customerService.deactivate(+id);
+  }
+
   @checkAbilites({action: 'read', subject: 'customer'})
   @Get('/all')
   findAll(@Req() request: UserRequest) {

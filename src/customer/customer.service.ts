@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,6 +16,7 @@ import { MailService } from 'src/mail/mail.service';
 import { MailDto } from 'src/mail/dto/mail.dto';
 import { UserRequest } from 'src/requests/user.request';
 import Bull from 'bull';
+import Redis from 'ioredis';
 
 @Injectable()
 export class CustomerService {
@@ -24,6 +25,8 @@ export class CustomerService {
     private customerRepository: Repository<Customer>,
     private authService: AuthService,
     private readonly queueService: QueueService,
+    @Inject('REDIS') 
+    private readonly redis: Redis,
   ) { }
 
   async register(createCustomerDto: CreateCustomerDto) {
@@ -52,9 +55,20 @@ export class CustomerService {
   }
 
   async login(loginCustomerDto: LoginCustomerDto){
-
     try{
       const customer = await this.findByEmailAndClient(loginCustomerDto.email, loginCustomerDto.client.id as number);
+      if(customer.account_status === AccountStatus.DEACTIVATED){
+        const activeJob = await this.redis.get(`customer.${customer.client.id}.${customer.id}.deactivationJob`);
+        const jobRemoved = await this.queueService.removeJob(
+          this.queueService.getQueue(`customer.${customer.id}`),
+          activeJob as string
+        )
+        if(jobRemoved){
+           await this.update(customer.id, {is_admin: true}, {
+            account_status: AccountStatus.ACTIVE,
+          } as UpdateCustomerDto);
+        }
+      }
       if(await bcrypt.compare(loginCustomerDto.password, customer.password)){
         return this.authService.constructCostumerToken(customer);
       }else{
@@ -176,6 +190,49 @@ export class CustomerService {
 
   }
 
+  async deactivate(id: number){
+    try{
+      const customer = await this.update(id, {is_admin: true}, {
+        account_status: AccountStatus.DEACTIVATED,
+      } as UpdateCustomerDto);
+
+      const queue = this.queueService.getQueue(`customer.${id}`);
+
+      await this.queueService.add(
+        queue,
+         `customer.${id}.sendStatusUpdateMessageProcess`,
+         {
+          mailDto: {
+            receiver: customer.email,
+            title: 'Your account has been deactivated',
+            client: customer.client.name,
+            reason: customer.notes,
+            status: AccountStatus.DEACTIVATED,
+          } as MailDto
+         }
+      )
+
+      const deactivationJob = await this.queueService.add(
+        queue,
+        `customer.${id}.deactivationProcess`,
+        {
+          customer,
+          mailDto: {
+            receiver: customer.email,
+            client: customer.client.name,
+          } as MailDto
+        },
+        {delay: CHANGE_STATUS_LENGTHS["MONTH"]}
+      )
+
+      await this.redis.set(`customer.${customer.client.id}.${customer.id}.deactivationJob`, deactivationJob?.id as number);
+
+      return `Customer account ${customer.id} deactivated successfully`
+    }catch(error){
+      throw error;
+    }
+  }
+
   async ban(id: number, user: any, statusDto: StatusDto) {
     try{
       const customer = await this.update(id, user, {
@@ -187,7 +244,7 @@ export class CustomerService {
 
       await this.queueService.add(
         queue,
-         `customer.${id}.sendBanMessageProcess`,
+         `customer.${id}.sendStatusUpdateMessageProcess`,
          {
           mailDto: {
             receiver: customer.email,
