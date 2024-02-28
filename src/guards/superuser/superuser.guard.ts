@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Inject, Logger, forwardRef } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { REQUIRE_SUPERUSER_ROLE, SUPERUSER } from "src/constants";
+import { SUPERUSER } from "src/constants";
 import { OperatorService } from "src/operator/operator.service";
 
 export class SuperuserGuard implements CanActivate {
