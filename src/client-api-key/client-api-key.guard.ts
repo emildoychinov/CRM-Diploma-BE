@@ -31,6 +31,7 @@ export class ClientApiKeyGuard implements CanActivate {
       if(!bearer || bearer !== 'Bearer'){
         return false;
       }
+      
       try{
         this.jwtService.verify(token, {
           secret: this.configService.get<string>('JWT_API_KEY_SECRET')

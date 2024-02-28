@@ -21,4 +21,16 @@ export class MailService {
       });
   }
 
+  async sendAccountDeactivationUpdate(mailDto: MailDto) {
+    await this.mailerService.sendMail({
+        to: mailDto.receiver,
+        subject: 'Account Deletion Notification',
+        template: './deactivation',
+        context: { 
+          name: mailDto.name ?? 'user',
+          client: mailDto.client,
+        },
+    });
+  }
+
 }

@@ -55,6 +55,15 @@ export class QueueService {
     return this.queues[name];
   }
 
+  async removeJob(queue: Bull.Queue, jobID: string){
+    const job = await queue.getJob(jobID);
+    if(job){
+      await job?.remove();
+      return true;
+    }
+    return false;
+  }
+
   async add(
     queue: Bull.Queue,
     name: string,

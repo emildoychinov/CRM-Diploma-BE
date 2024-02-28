@@ -28,8 +28,17 @@ export class StatusListener {
             );
 
             this.queueService.createProcess(queue, 
-              `customer.${customer.id}.sendBanMessageProcess`,
-              this.sendBanMessageProcess.bind(this),
+              `customer.${customer.id}.sendStatusUpdateMessageProcess`,
+              this.sendStatusUpdateMessageProcess.bind(this),
+            );
+
+            this.queueService.createProcess(queue, 
+              `customer.${customer.id}.deactivationProcess`,
+              this.deactivationProcess.bind(this),
+              async () => {
+                await this.redis.del(`customer.${customer.client.id}.${customer.id}.deactivationJob`);
+                Logger.log(`Customer ${customer.id} deleted`); 
+              }
             );
 
           })
@@ -63,10 +72,25 @@ export class StatusListener {
           }catch(error){
             Logger.error(error);
             throw error;
-        }
+          }
     }
 
-    async sendBanMessageProcess(job: Job<{ mailDto: MailDto }>){
+    async deactivationProcess(job: Job<{
+      customer: Customer,
+      mailDto: MailDto
+    }>){
+      try{
+        const {customer, mailDto} = job.data;
+        await this.customerService.removeById(customer.id);
+        await this.mailService.sendAccountDeactivationUpdate(mailDto);
+      }catch(error){
+        Logger.error(error);
+        throw error;
+      }
+    }
+    
+
+    async sendStatusUpdateMessageProcess(job: Job<{ mailDto: MailDto }>){
       const {mailDto} = job.data;
       await this.mailService.sendStatusUpdate(mailDto);
     }
