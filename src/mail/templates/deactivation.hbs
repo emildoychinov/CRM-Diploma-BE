@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Deletion Notification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .message {
+      background-color: #f8f8f8;
+      padding: 20px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="message">
+    <p>Dear {{ name }},</p>
+    <p>We regret to inform you that your account in {{ client }} has been deleted due to inactivity for the last 30 days.</p>
+    <p>If you have any questions or concerns, please contact the administrator.</p>
+  </div>
+</body>
+</html>
