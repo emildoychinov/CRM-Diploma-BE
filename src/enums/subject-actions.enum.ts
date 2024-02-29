@@ -4,3 +4,4 @@ export enum SubjectActions {
     UPDATE = 'update',
     DELETE = 'delete'
 }
+

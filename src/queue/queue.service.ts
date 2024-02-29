@@ -1,13 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
 import * as Bull from 'bull';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class QueueService {
   private logger = new Logger(QueueService.name);
   queues: { [key: string]: Bull.Queue } = {};
   opts: any;
-  constructor() {
+  
+  constructor(private readonly configService: ConfigService) {
     let client: any;
     let subscriber: any;
     this.opts = {
@@ -16,7 +18,8 @@ export class QueueService {
         switch (type) {
           case 'client':
             if (!client) {
-              client = new Redis('localhost', {
+              client = new Redis(
+                configService.get<string>('REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/) as string, {
                 ...redisOpts,
                 maxRetriesPerRequest: null,
                 enableReadyCheck: false,
@@ -25,15 +28,17 @@ export class QueueService {
             return client;
           case 'subscriber':
             if (!subscriber) {
-              subscriber = new Redis('localhost', {
+              subscriber = new Redis(
+                configService.get<string>('REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/) as string, {
                 ...redisOpts,
-                maxRetriesPerRequest: null,
+                maxRetriesPerRequest: null, 
                 enableReadyCheck: false,
               });
             }
             return subscriber;
           case 'bclient':
-            return new Redis('localhost', {
+            return new Redis(
+              configService.get<string>('REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/) as string, {
               ...redisOpts,
               maxRetriesPerRequest: null,
               enableReadyCheck: false,

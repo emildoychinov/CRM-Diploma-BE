@@ -11,7 +11,6 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './transform/transform.interceptor';
 import { PermissionsModule } from './permissions/permissions.module';
 import { RolesModule } from './roles/roles.module';
-import { CaslModule } from './casl/casl.module';
 import { AuthGuard } from './guards/auth/auth.guard';
 import { QueueService } from './queue/queue.service';
 import { QueueModule } from './queue/queue.module';
@@ -67,7 +66,6 @@ require('events').EventEmitter.defaultMaxListeners = 0;
     AuthModule,
     PermissionsModule,
     RolesModule,
-    CaslModule,
     QueueModule,
     RedisModule,
     CustomerModule,
