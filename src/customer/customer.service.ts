@@ -59,7 +59,7 @@ export class CustomerService {
       const customer = await this.findByEmailAndClient(loginCustomerDto.email, loginCustomerDto.client.id as number);
       if(customer.account_status === AccountStatus.DEACTIVATED){
         const activeJob = await this.redis.get(`customer.${customer.client.id}.${customer.id}.deactivationJob`);
-        const jobRemoved = await this.queueService.removeJob(
+        const jobRemoved = await this.queueService.remove(
           this.queueService.getQueue(`customer.${customer.id}`),
           activeJob as string
         )

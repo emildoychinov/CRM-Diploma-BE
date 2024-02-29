@@ -60,15 +60,6 @@ export class QueueService {
     return this.queues[name];
   }
 
-  async removeJob(queue: Bull.Queue, jobID: string){
-    const job = await queue.getJob(jobID);
-    if(job){
-      await job?.remove();
-      return true;
-    }
-    return false;
-  }
-
   async add(
     queue: Bull.Queue,
     name: string,
@@ -85,15 +76,29 @@ export class QueueService {
     });
   }
 
-  createProcess(queue: any, name: string, callback: Function, onCompleteCallback?: Function) {
-    queue.process(
-      name,
-      this.processJobWrapper.bind(this, { callback, name, onCompleteCallback }),
-    );
+  async remove(queue: Bull.Queue, jobID: string){
+    if(queue){
+      const job = await queue.getJob(jobID);
+      if(job){
+        await job?.remove();
+        return true;
+      }
+      return false;
+    }
+    return false;
+  }
+
+  createProcess(queue: Bull.Queue, name: string, callback: Function, onCompleteCallback?: Function) {
+    if(queue){
+      queue.process(
+        name,
+        this.processJobWrapper.bind(this, { callback, name, onCompleteCallback }),
+      );
+    }
   }
 
   async processJobWrapper(
-    data: { callback: any; onCompleteCallback?: any; name: string },
+    data: { callback: Function; onCompleteCallback?: Function; name: string },
     job: Bull.Job,
   ) {
     try {
@@ -103,7 +108,7 @@ export class QueueService {
       }
     } catch (err) {
       this.logger.error(
-        `Error in job ${data.name} occured with args ${JSON.stringify(
+        `Error in job ${data.name} occurred with args ${JSON.stringify(
           job.data,
         )}\n Error: ${err}`,
         err.stack,
