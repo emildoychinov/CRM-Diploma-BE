@@ -37,6 +37,7 @@ export class UserService {
             u.client_id,
           );
     } catch (error) {
+      Logger.debug('tes')
       Logger.error(error);
       return error.message;
     }

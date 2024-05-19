@@ -43,6 +43,7 @@ export class UserRefreshTokenGuard implements CanActivate {
       if (!user || !user.refresh_token || !(await bcrypt.compare(token, user?.refresh_token?.token))) {
         return false;
       }
+      console.log(user);
 
       return true;
     } catch (error) {

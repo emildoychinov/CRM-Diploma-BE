@@ -53,7 +53,8 @@ export class AbilityGuard implements CanActivate {
         );
       }
 
-      if (!(rule.action in SubjectActions)) {
+      if (!(Object.values(SubjectActions).includes(rule.action))) {
+        
         Logger.error(`Permission action ${rule.action} does not exist`);
         throw new NotFoundException(
           `Permission action ${rule.action} does not exist`,

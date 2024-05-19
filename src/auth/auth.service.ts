@@ -50,7 +50,7 @@ export class AuthService {
   }
 
   async logout(userID: number) {
-    return this.userRefreshTokenService.deleteToken(userID);
+    return this.userRefreshTokenService.invalidateToken(userID);
   }
 
   async refreshTokens(user: any) {

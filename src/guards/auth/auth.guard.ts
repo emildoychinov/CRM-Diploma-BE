@@ -56,11 +56,10 @@ export class AuthGuard implements CanActivate {
       request.user = decodedToken;
 
       const user = await this.userService.findById(request.user.sub);
-      if (!user || !user.refresh_token) {
+      if (!user || !user?.refresh_token?.token) {
         return false;
       }
 
-      
       return true;
     } catch (error) {
       return false;

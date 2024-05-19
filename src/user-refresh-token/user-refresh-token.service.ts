@@ -20,7 +20,6 @@ export class UserRefreshTokenService {
     const userID = createUserRefreshTokenDto.userID;
     const keys = await this.constructKeys(userID);
     const existingToken = await this.findToken(userID);
-
     if (existingToken) {
       return await this.refresh(userID, existingToken);
     }
@@ -60,7 +59,11 @@ export class UserRefreshTokenService {
     return { token: keys.token };
   }
 
-  async deleteToken(userID: number) {
-    return await this.repository.delete({ user: { id: userID } });
+  async invalidateToken(userID: number) {
+    const invalidated = await this.findToken(userID);
+    if(invalidated?.token){
+      invalidated.token = '';
+      return this.repository.save(invalidated);
+    }
   }
 }
