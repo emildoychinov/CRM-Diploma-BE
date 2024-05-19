@@ -11,27 +11,40 @@ export class PermissionsService {
   constructor(
     @InjectRepository(Permission)
     private permissionRepository: Repository<Permission>,
-  ){}
+  ) {}
   async create(createPermissionDto: CreatePermissionDto) {
     const subjectExists = await this.findSubject(createPermissionDto.subject);
-    if(subjectExists){
-      try{
-        await this.findOneWithAttributes(createPermissionDto.subject, createPermissionDto.action, createPermissionDto.conditions)
-      }catch(error){
-        const permission = this.permissionRepository.create(createPermissionDto);
+    if (subjectExists) {
+      try {
+        await this.findOneWithAttributes(
+          createPermissionDto.subject,
+          createPermissionDto.action,
+          createPermissionDto.conditions,
+        );
+      } catch (error) {
+        const permission =
+          this.permissionRepository.create(createPermissionDto);
         return this.permissionRepository.save(permission);
       }
       throw new Error('Permission already exists');
-    }else{
-      throw new Error('Permission subject not found ')
+    } else {
+      throw new Error('Permission subject not found ');
     }
   }
 
-  async findOneWithAttributes(subject: string, action: string, conditions?: string){
-    try{
-      const permission = await this.permissionRepository.findOneByOrFail({ subject, action, conditions});
+  async findOneWithAttributes(
+    subject: string,
+    action: string,
+    conditions?: string,
+  ) {
+    try {
+      const permission = await this.permissionRepository.findOneByOrFail({
+        subject,
+        action,
+        conditions,
+      });
       return permission;
-    }catch(error){
+    } catch (error) {
       throw error;
     }
   }
@@ -49,33 +62,33 @@ export class PermissionsService {
   }
 
   remove(id: number) {
-    return this.permissionRepository.delete({id});
+    return this.permissionRepository.delete({ id });
   }
 
-  async addRole(id: number, role: Role){
+  async addRole(id: number, role: Role) {
     const permission = await this.findOne(id);
-    const {permissions, ...sanitizedRole} = role;
-    
-    if(permission){
-      if(!permission.roles?.find(role => role.id == sanitizedRole.id)){
+    const { permissions, ...sanitizedRole } = role;
+
+    if (permission) {
+      if (!permission.roles?.find((role) => role.id == sanitizedRole.id)) {
         permission.roles?.push(sanitizedRole);
         return this.permissionRepository.save(permission);
-      }else{
-        throw new Error('Role already has this permission')
+      } else {
+        throw new Error('Role already has this permission');
       }
-    }else{
-      throw new NotFoundException('Permission not found')
+    } else {
+      throw new NotFoundException('Permission not found');
     }
   }
 
-  async findSubject(subject: string){
+  async findSubject(subject: string) {
     const table = await this.permissionRepository.manager.query(
       `SELECT EXISTS (
         SELECT 1
         FROM information_schema.tables
         WHERE table_name = $1
       )`,
-      [subject.toLowerCase()]
+      [subject.toLowerCase()],
     );
     return table[0].exists;
   }

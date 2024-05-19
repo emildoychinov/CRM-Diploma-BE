@@ -10,7 +10,12 @@ import { StatusListener } from 'src/customer-status/status.listener';
 import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports: [MailModule, AuthModule, JwtModule, TypeOrmModule.forFeature([Customer])],
+  imports: [
+    MailModule,
+    AuthModule,
+    JwtModule,
+    TypeOrmModule.forFeature([Customer]),
+  ],
   controllers: [CustomerController],
   providers: [QueueService, CustomerService, StatusListener],
 })

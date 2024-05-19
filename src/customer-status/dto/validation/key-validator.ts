@@ -1,7 +1,13 @@
-import { ValidationOptions, registerDecorator, ValidationArguments } from 'class-validator';
+import {
+  ValidationOptions,
+  registerDecorator,
+  ValidationArguments,
+} from 'class-validator';
 import { CHANGE_STATUS_LENGTHS } from 'src/constants';
 
-export function IsDurationKeyOfStatusLengths(validationOptions?: ValidationOptions) {
+export function IsDurationKeyOfStatusLengths(
+  validationOptions?: ValidationOptions,
+) {
   return function (object: Record<string, any>, propertyName: string) {
     registerDecorator({
       name: 'isDurationKeyOfStatusLengths',

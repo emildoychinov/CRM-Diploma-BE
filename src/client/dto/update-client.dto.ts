@@ -4,12 +4,11 @@ import { Operator } from 'src/operator/entities/operator.entity';
 import { IsArray, IsOptional, IsString } from 'class-validator';
 
 export class UpdateClientDto extends PartialType(CreateClientDto) {
-   
-    @IsOptional()
-    @IsString()
-    name?: string;
+  @IsOptional()
+  @IsString()
+  name?: string;
 
-    @IsOptional()
-    @IsArray()
-    operators?: Operator[] | undefined;
+  @IsOptional()
+  @IsArray()
+  operators?: Operator[] | undefined;
 }

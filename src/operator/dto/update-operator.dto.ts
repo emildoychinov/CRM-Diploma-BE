@@ -6,9 +6,8 @@ import { IsOptional, IsString } from 'class-validator';
 import { Role } from 'src/roles/entities/role.entity';
 
 export class UpdateOperatorDto extends PartialType(CreateOperatorDto) {
-
-    @IsOptional()
-    public readonly user?: User;
-    @IsOptional()
-    public readonly role?: Role;
+  @IsOptional()
+  public readonly user?: User;
+  @IsOptional()
+  public readonly role?: Role;
 }

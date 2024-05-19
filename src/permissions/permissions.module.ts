@@ -10,6 +10,6 @@ import { ConfigModule } from '@nestjs/config';
   imports: [ConfigModule, TypeOrmModule.forFeature([Permission, Role])],
   controllers: [PermissionsController],
   providers: [PermissionsService],
-  exports: [PermissionsService]
+  exports: [PermissionsService],
 })
 export class PermissionsModule {}

@@ -8,9 +8,13 @@ import { Operator } from 'src/operator/entities/operator.entity';
 import { OperatorModule } from 'src/operator/operator.module';
 
 @Module({
-  imports: [ConfigModule, forwardRef(() => OperatorModule), TypeOrmModule.forFeature([Operator, User])],
+  imports: [
+    ConfigModule,
+    forwardRef(() => OperatorModule),
+    TypeOrmModule.forFeature([Operator, User]),
+  ],
   controllers: [UserController],
   providers: [UserService],
-  exports: [UserService]
+  exports: [UserService],
 })
 export class UserModule {}

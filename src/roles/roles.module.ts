@@ -15,13 +15,14 @@ import { RolesListener } from './roles.listener';
 
 @Module({
   imports: [
-    ConfigModule, 
-    forwardRef(() => ClientModule), 
-    forwardRef(() => OperatorModule), 
-    forwardRef(() => PermissionsModule), 
-    TypeOrmModule.forFeature([Role, Permission, Client ,Operator])],
+    ConfigModule,
+    forwardRef(() => ClientModule),
+    forwardRef(() => OperatorModule),
+    forwardRef(() => PermissionsModule),
+    TypeOrmModule.forFeature([Role, Permission, Client, Operator]),
+  ],
   controllers: [RolesController],
   providers: [QueueService, RolesService, RolesListener],
-  exports: [RolesService]
+  exports: [RolesService],
 })
 export class RolesModule {}

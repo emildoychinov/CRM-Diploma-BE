@@ -6,17 +6,16 @@ import { Operator } from 'src/operator/entities/operator.entity';
 import { Client } from 'src/client/entities/client.entity';
 
 export class UpdateRoleDto extends PartialType(CreateRoleDto) {
-   
-    @IsOptional()
-    @IsString()
-    name: string;
+  @IsOptional()
+  @IsString()
+  name: string;
 
-    @IsOptional()
-    permissions?: Partial<Permission>[];
+  @IsOptional()
+  permissions?: Partial<Permission>[];
 
-    @IsOptional()
-    operators?: Partial<Operator>[];
-    
-    @IsOptional()
-    client?: Partial<Client>;
+  @IsOptional()
+  operators?: Partial<Operator>[];
+
+  @IsOptional()
+  client?: Partial<Client>;
 }

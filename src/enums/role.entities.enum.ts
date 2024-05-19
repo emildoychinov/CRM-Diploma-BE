@@ -1,4 +1,4 @@
 export enum EntityService {
-    OPERATOR = 'operator',
-    PERMISSION = 'permission'
+  OPERATOR = 'operator',
+  PERMISSION = 'permission',
 }

@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+} from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
@@ -14,7 +23,7 @@ import { SubjectActions } from 'src/enums/subject-actions.enum';
 @Controller('customer')
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
-  
+
   @RequireApiKey()
   @Post('auth/register')
   register(@Body() createCustomerDto: CreateCustomerDto) {
@@ -29,11 +38,11 @@ export class CustomerController {
 
   @RequireApiKey()
   @Patch('/deactivate/:id')
-  deactivate(@Param('id') id: string){
+  deactivate(@Param('id') id: string) {
     return this.customerService.deactivate(+id);
   }
 
-  @checkAbilites({action: SubjectActions.READ, subject: 'customer'})
+  @checkAbilites({ action: SubjectActions.READ, subject: 'customer' })
   @Get('/all')
   findAll(@Req() request: UserRequest) {
     return this.customerService.findCustomers(request.user);
@@ -42,28 +51,36 @@ export class CustomerController {
   @RequireSuperuser()
   @Get('/all/:client_id')
   findAllInClient(@Param('client_id') clientID: string) {
-    return this.customerService.findAllInClient(+clientID)
+    return this.customerService.findAllInClient(+clientID);
   }
 
-  @checkAbilites({action: SubjectActions.READ, subject: 'customer'})
+  @checkAbilites({ action: SubjectActions.READ, subject: 'customer' })
   @Get(':id')
   findOne(@Param('id') id: string, @Req() request: UserRequest) {
     return this.customerService.findCustomerById(+id, request.user);
   }
 
-  @checkAbilites({action: SubjectActions.UPDATE, subject: 'customer'})
+  @checkAbilites({ action: SubjectActions.UPDATE, subject: 'customer' })
   @Patch('ban/:id')
-  ban(@Param('id') id: string, @Body() statusDto: StatusDto, @Req() request: UserRequest){
-    return this.customerService.ban(+id, request.user, statusDto)
+  ban(
+    @Param('id') id: string,
+    @Body() statusDto: StatusDto,
+    @Req() request: UserRequest,
+  ) {
+    return this.customerService.ban(+id, request.user, statusDto);
   }
-  
-  @checkAbilites({action: SubjectActions.UPDATE, subject: 'customer'})
+
+  @checkAbilites({ action: SubjectActions.UPDATE, subject: 'customer' })
   @Patch('update/:id')
-  update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto, @Req() request: UserRequest) {
+  update(
+    @Param('id') id: string,
+    @Body() updateCustomerDto: UpdateCustomerDto,
+    @Req() request: UserRequest,
+  ) {
     return this.customerService.update(+id, request.user, updateCustomerDto);
   }
 
-  @checkAbilites({action: SubjectActions.DELETE, subject: 'customer'})
+  @checkAbilites({ action: SubjectActions.DELETE, subject: 'customer' })
   @Delete('delete/:id')
   remove(@Param('id') id: string, @Req() request: UserRequest) {
     return this.customerService.removeCustomer(+id, request.user);

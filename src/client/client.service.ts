@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger, NotFoundException, forwardRef } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,16 +24,18 @@ export class ClientService {
     @Inject(forwardRef(() => OperatorService))
     private readonly operatorService: OperatorService,
     @Inject(forwardRef(() => ClientApiKeyService))
-    private readonly apiKeyService: ClientApiKeyService
-  ) { }
+    private readonly apiKeyService: ClientApiKeyService,
+  ) {}
 
   async create(createClientDto: CreateClientDto) {
-    try{
+    try {
       const client = this.clientRepository.create(createClientDto);
       const savedClient = await this.clientRepository.save(client);
-      const keyAndToken = await this.apiKeyService.createKey({clientID: savedClient.id});
+      const keyAndToken = await this.apiKeyService.createKey({
+        clientID: savedClient.id,
+      });
       savedClient.api_key = keyAndToken.key;
-      return {api_key: keyAndToken.token, client: savedClient};
+      return { api_key: keyAndToken.token, client: savedClient };
     } catch (error) {
       throw new Error('Failed to create client');
     }
@@ -43,14 +51,14 @@ export class ClientService {
       .getMany();
   }
 
-  async findByName(name: string){
+  async findByName(name: string) {
     return this.clientRepository
       .createQueryBuilder('client')
       .leftJoinAndSelect('client.operators', 'operators')
       .leftJoinAndSelect('operators.roles', 'roles')
       .leftJoinAndSelect('operators.user', 'user')
       .leftJoinAndSelect('client.api_key', 'api_key')
-      .where('client.name = :name', {name})
+      .where('client.name = :name', { name })
       .getOneOrFail();
   }
 
@@ -63,48 +71,54 @@ export class ClientService {
       .leftJoinAndSelect('operators.user', 'user')
       .leftJoinAndSelect('client.customers', 'room_customers')
       .leftJoinAndSelect('client.api_key', 'api_key')
-      .where('client.id = :id', {id})
+      .where('client.id = :id', { id })
       .getOneOrFail();
   }
-
 
   async update(id: number, updateClientDto: UpdateClientDto) {
     const client = await this.findById(id);
     const operators = updateClientDto.operators;
-    if(client){
-      if(operators && operators?.length){
+    if (client) {
+      if (operators && operators?.length) {
         this.addOperators(client, operators);
       }
-    }else{
+    } else {
       throw new NotFoundException('Client not found');
     }
   }
 
-  async updateApiKey(id: number, apiKey: ClientApiKey){
+  async updateApiKey(id: number, apiKey: ClientApiKey) {
     const client = await this.findById(id);
-    if(client){
-      if(!client.api_key || 
-        (client.api_key && client.api_key.id == apiKey.id)){
+    if (client) {
+      if (
+        !client.api_key ||
+        (client.api_key && client.api_key.id == apiKey.id)
+      ) {
         client.api_key = apiKey;
         await this.clientRepository.save(client);
-      }else{
-        Logger.error(`API Key ${apiKey.id} does not belong to client ${client.id}`)
-        return `API Key ${apiKey.id} does not belong to client ${client.id}`
+      } else {
+        Logger.error(
+          `API Key ${apiKey.id} does not belong to client ${client.id}`,
+        );
+        return `API Key ${apiKey.id} does not belong to client ${client.id}`;
       }
-    }else{
+    } else {
       throw new NotFoundException('Client not found');
     }
   }
 
-  async addOperators(client: Partial<Client>, operators: Partial<Operator>[]){
-
-    for (const operator of operators){
-      try{
-        const {client : operatorClient, ...clientOperator} = await this.operatorService.assignClient(operator.id as number, client);
-        if(!client.operators?.includes(operator as Operator)){
-          client.operators?.push(clientOperator)
+  async addOperators(client: Partial<Client>, operators: Partial<Operator>[]) {
+    for (const operator of operators) {
+      try {
+        const { client: operatorClient, ...clientOperator } =
+          await this.operatorService.assignClient(
+            operator.id as number,
+            client,
+          );
+        if (!client.operators?.includes(operator as Operator)) {
+          client.operators?.push(clientOperator);
         }
-      }catch(error){
+      } catch (error) {
         console.error(error);
         return false;
       }
@@ -112,25 +126,25 @@ export class ClientService {
     return this.clientRepository.save(client);
   }
 
-  async addRole(clientID: number, role: Role){
-    const {operators, client: roleClient,...sanitizedRole} = role;
+  async addRole(clientID: number, role: Role) {
+    const { operators, client: roleClient, ...sanitizedRole } = role;
     const client = await this.findById(clientID);
-    if(roleClient && roleClient.id != clientID){
+    if (roleClient && roleClient.id != clientID) {
       throw new Error('Role belongs to another client');
     }
-    if(client){
-      if(!client.roles?.find(role => role.name === sanitizedRole.name)){
+    if (client) {
+      if (!client.roles?.find((role) => role.name === sanitizedRole.name)) {
         client.roles?.push(sanitizedRole);
         return this.clientRepository.save(client);
-      }else{
-        throw new Error('Role already exists whitin this client')
+      } else {
+        throw new Error('Role already exists whitin this client');
       }
-    }else{
-      throw new NotFoundException('Client not found')
+    } else {
+      throw new NotFoundException('Client not found');
     }
   }
 
   remove(id: number) {
-    return this.clientRepository.delete({id});
+    return this.clientRepository.delete({ id });
   }
 }

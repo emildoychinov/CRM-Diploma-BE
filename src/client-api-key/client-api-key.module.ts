@@ -9,12 +9,13 @@ import { ClientModule } from 'src/client/client.module';
 
 @Module({
   imports: [
-    forwardRef(() => ClientModule), 
-    AuthModule, 
-    JwtModule, 
-    TypeOrmModule.forFeature([ClientApiKey])],
+    forwardRef(() => ClientModule),
+    AuthModule,
+    JwtModule,
+    TypeOrmModule.forFeature([ClientApiKey]),
+  ],
   controllers: [ClientApiKeyController],
   providers: [ClientApiKeyService],
-  exports: [ClientApiKeyService]
+  exports: [ClientApiKeyService],
 })
 export class ClientApiKeyModule {}
