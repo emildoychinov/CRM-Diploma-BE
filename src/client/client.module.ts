@@ -14,14 +14,14 @@ import { ClientApiKeyModule } from 'src/client-api-key/client-api-key.module';
 
 @Module({
   imports: [
-    ConfigModule, 
-    forwardRef(() => OperatorModule), 
-    forwardRef(() => UserModule), 
+    ConfigModule,
+    forwardRef(() => OperatorModule),
+    forwardRef(() => UserModule),
     forwardRef(() => ClientApiKeyModule),
-    TypeOrmModule.forFeature([Client, Operator, User, Role, ClientApiKey])
+    TypeOrmModule.forFeature([Client, Operator, User, Role, ClientApiKey]),
   ],
   controllers: [ClientController],
   providers: [ClientService],
-  exports: [ClientService]
+  exports: [ClientService],
 })
 export class ClientModule {}

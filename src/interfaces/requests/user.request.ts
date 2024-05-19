@@ -1,4 +1,3 @@
-export interface UserRequest extends Request{
-    user : any;
+export interface UserRequest extends Request {
+  user: any;
 }
-

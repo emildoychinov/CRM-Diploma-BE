@@ -8,7 +8,7 @@ export class QueueService {
   private logger = new Logger(QueueService.name);
   queues: { [key: string]: Bull.Queue } = {};
   opts: any;
-  
+
   constructor(private readonly configService: ConfigService) {
     let client: any;
     let subscriber: any;
@@ -19,30 +19,42 @@ export class QueueService {
           case 'client':
             if (!client) {
               client = new Redis(
-                configService.get<string>('REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/) as string, {
-                ...redisOpts,
-                maxRetriesPerRequest: null,
-                enableReadyCheck: false,
-              });
+                configService.get<string>(
+                  'REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/,
+                ) as string,
+                {
+                  ...redisOpts,
+                  maxRetriesPerRequest: null,
+                  enableReadyCheck: false,
+                },
+              );
             }
             return client;
           case 'subscriber':
             if (!subscriber) {
               subscriber = new Redis(
-                configService.get<string>('REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/) as string, {
-                ...redisOpts,
-                maxRetriesPerRequest: null, 
-                enableReadyCheck: false,
-              });
+                configService.get<string>(
+                  'REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/,
+                ) as string,
+                {
+                  ...redisOpts,
+                  maxRetriesPerRequest: null,
+                  enableReadyCheck: false,
+                },
+              );
             }
             return subscriber;
           case 'bclient':
             return new Redis(
-              configService.get<string>('REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/) as string, {
-              ...redisOpts,
-              maxRetriesPerRequest: null,
-              enableReadyCheck: false,
-            });
+              configService.get<string>(
+                'REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/,
+              ) as string,
+              {
+                ...redisOpts,
+                maxRetriesPerRequest: null,
+                enableReadyCheck: false,
+              },
+            );
           default:
             throw new Error('Unexpected connection type: ');
         }
@@ -76,10 +88,10 @@ export class QueueService {
     });
   }
 
-  async remove(queue: Bull.Queue, jobID: string){
-    if(queue){
+  async remove(queue: Bull.Queue, jobID: string) {
+    if (queue) {
       const job = await queue.getJob(jobID);
-      if(job){
+      if (job) {
         await job?.remove();
         return true;
       }
@@ -88,11 +100,20 @@ export class QueueService {
     return false;
   }
 
-  createProcess(queue: Bull.Queue, name: string, callback: Function, onCompleteCallback?: Function) {
-    if(queue){
+  createProcess(
+    queue: Bull.Queue,
+    name: string,
+    callback: Function,
+    onCompleteCallback?: Function,
+  ) {
+    if (queue) {
       queue.process(
         name,
-        this.processJobWrapper.bind(this, { callback, name, onCompleteCallback }),
+        this.processJobWrapper.bind(this, {
+          callback,
+          name,
+          onCompleteCallback,
+        }),
       );
     }
   }

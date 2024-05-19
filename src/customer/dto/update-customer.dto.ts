@@ -5,23 +5,20 @@ import { Client } from 'src/client/entities/client.entity';
 import { AccountStatus } from '../../enums/customer-account-status.enum';
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
-    
-    @IsOptional()
-    @IsEmail()
-    email: string;
-    
-    @IsOptional()
-    @IsString()
-    public readonly password: string;
-    
-    @IsOptional()
-    number: string;
+  @IsOptional()
+  @IsEmail()
+  email: string;
 
-    @IsOptional()
-    account_status: AccountStatus;
+  @IsOptional()
+  @IsString()
+  public readonly password: string;
 
-    @IsOptional()
-    notes: string;
-    
+  @IsOptional()
+  number: string;
 
+  @IsOptional()
+  account_status: AccountStatus;
+
+  @IsOptional()
+  notes: string;
 }

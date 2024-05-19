@@ -1,4 +1,10 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  forwardRef,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { User } from 'src/user/entities/user.entity';
@@ -6,14 +12,16 @@ import { AuthUserDto } from './dto/auth-user.dto';
 import { Customer } from 'src/customer/entities/customer.entity';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-import { Client } from 'src/client/entities/client.entity';
+import { UserRefreshTokenService } from '../user-refresh-token/user-refresh-token.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
+    @Inject(forwardRef(() => UserRefreshTokenService))
+    private userRefreshTokenService: UserRefreshTokenService,
     private jwtService: JwtService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
   ) {}
 
   async validateUser(authUserDto: AuthUserDto): Promise<User | null> {
@@ -25,75 +33,65 @@ export class AuthService {
   }
 
   async loginOperator(authUserDto: AuthUserDto): Promise<{}> {
-    
     let user = await this.validateUser(authUserDto);
-    
-    if(user){
+
+    if (user) {
       return this.generateTokens(user);
-    }else{
+    } else {
       return {};
     }
   }
 
-  async generateTokens(user: User){
-    
-    let payload: any = { sub: user?.id };
+  async generateTokens(user: User) {
+    const accessToken = this.constructUserAccessToken(user?.id);
+    const refreshToken = await this.userRefreshTokenService.createToken({
+      userID: user?.id,
+    });
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken.token,
+      user: user,
+    };
+  }
+
+  async logout(userID: number) {
+    return this.userRefreshTokenService.invalidateToken(userID);
+  }
+
+  async refreshTokens(user: any) {
+    return this.constructUserAccessToken(user.id);
+  }
+
+  constructCostumerToken(customer: Customer) {
+    const payload = { sub: { id: customer.id, client_id: customer.client.id } };
+    return {
+      token: this.jwtService.sign(payload),
+      user: customer,
+    };
+  }
+
+  constructUserAccessToken(userID: number) {
+    const payload = { sub: userID };
+    return this.jwtService.sign(payload);
+  }
+
+  constructUserRefreshToken(userID: number) {
+    const payload = { sub: userID };
     const refreshTokenOptions = {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       expiresIn: '7d',
-    }
-
-    const refreshToken = this.jwtService.sign(
-      payload,
-      refreshTokenOptions
-    );
-
-    payload = {
-      ...payload,
-      refreshToken
     };
 
-    const hashedToken = await bcrypt.hash(refreshToken, 10);
-    user = await this.userService.update(user?.id as number, {refreshToken: hashedToken}, {}) as User;
-
-    return {
-      access_token: this.jwtService.sign(payload),
-      refresh_token: refreshToken,
-      user: user
-    };
+    return this.jwtService.sign(payload, refreshTokenOptions);
   }
 
-  async logout(userID: number){
-    return this.userService.update(userID, {refreshToken: null}, {});
-  }
-
-  async refreshTokens(userId: number, refreshToken: string){
-    const user = await this.userService.findById(userId);
-
-    if (!user || !user.refresh_token)
-      throw new ForbiddenException('Access Denied');
-
-    if (!(await bcrypt.compare(refreshToken, user.refresh_token))) 
-      throw new ForbiddenException('Access Denied');
-
-    return this.generateTokens(user);
-  }
-
-  constructCostumerToken(customer: Customer){
-    const payload = { sub: {id: customer.id, client_id: customer.client.id} };
-      return {
-        token: this.jwtService.sign(payload),
-        user: customer
-      }
-  }
-
-  constructApiKey(clientID: number){
-    const payload = { sub : clientID }
+  constructApiKey(clientID: number) {
+    const payload = { sub: clientID };
     const apiKeyOptions = {
       secret: this.configService.get<string>('JWT_API_KEY_SECRET'),
       expiresIn: '30d',
-    }
-    return this.jwtService.sign(payload, apiKeyOptions)
-
+    };
+    return this.jwtService.sign(payload, apiKeyOptions);
   }
 }

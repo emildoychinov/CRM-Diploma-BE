@@ -12,9 +12,14 @@ import { Permission } from 'src/permissions/entities/permission.entity';
 import { Role } from 'src/roles/entities/role.entity';
 
 @Module({
-  imports: [ConfigModule, JwtModule, forwardRef(() => UserModule), TypeOrmModule.forFeature([Operator, User, Client, Permission, Role])],
+  imports: [
+    ConfigModule,
+    JwtModule,
+    forwardRef(() => UserModule),
+    TypeOrmModule.forFeature([Operator, User, Client, Permission, Role]),
+  ],
   controllers: [OperatorController],
   providers: [OperatorService],
-  exports: [OperatorService]
+  exports: [OperatorService],
 })
 export class OperatorModule {}

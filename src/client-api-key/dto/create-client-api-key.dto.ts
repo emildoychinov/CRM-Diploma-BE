@@ -1,6 +1,6 @@
-import { IsNumber, IsString } from "class-validator";
+import { IsNumber, IsString } from 'class-validator';
 
 export class CreateClientApiKeyDto {
-    @IsNumber()
-    public readonly clientID: number;
+  @IsNumber()
+  public readonly clientID: number;
 }
