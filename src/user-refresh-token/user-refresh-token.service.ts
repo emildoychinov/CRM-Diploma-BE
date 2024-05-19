@@ -13,7 +13,7 @@ export class UserRefreshTokenService {
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
     @InjectRepository(UserRefreshToken)
-    private repository: Repository<UserRefreshToken>
+    private repository: Repository<UserRefreshToken>,
   ) {}
 
   async createToken(createUserRefreshTokenDto: CreateUserRefreshTokenDto) {
@@ -61,7 +61,7 @@ export class UserRefreshTokenService {
 
   async invalidateToken(userID: number) {
     const invalidated = await this.findToken(userID);
-    if(invalidated?.token){
+    if (invalidated?.token) {
       invalidated.token = '';
       return this.repository.save(invalidated);
     }

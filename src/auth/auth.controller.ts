@@ -24,15 +24,13 @@ export class AuthController {
     return this.authService.loginOperator(authUserDto);
   }
 
-
   @Get('refresh')
   @AllowUnauthorizedRequest()
   @UseGuards(UserRefreshTokenGuard)
   refresh(@Req() request: UserRequest) {
     return this.authService.refreshTokens({
-        id: request.user.sub,
-      }
-    );
+      id: request.user.sub,
+    });
   }
 
   @Get('logout')

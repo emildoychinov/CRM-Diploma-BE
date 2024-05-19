@@ -17,7 +17,10 @@ export class UserRefreshToken {
   @Column({ nullable: true })
   token: string;
 
-  @OneToOne(() => User, (user) => user.refresh_token, { nullable: true, cascade: false })
+  @OneToOne(() => User, (user) => user.refresh_token, {
+    nullable: true,
+    cascade: false,
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 }

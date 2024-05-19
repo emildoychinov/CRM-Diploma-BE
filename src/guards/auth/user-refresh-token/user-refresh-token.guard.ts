@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -40,7 +45,11 @@ export class UserRefreshTokenGuard implements CanActivate {
       request.user = decodedToken;
 
       const user = await this.userService.findById(request.user.sub);
-      if (!user || !user.refresh_token || !(await bcrypt.compare(token, user?.refresh_token?.token))) {
+      if (
+        !user ||
+        !user.refresh_token ||
+        !(await bcrypt.compare(token, user?.refresh_token?.token))
+      ) {
         return false;
       }
       console.log(user);

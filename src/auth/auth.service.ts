@@ -1,4 +1,10 @@
-import { ForbiddenException, Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  forwardRef,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { User } from 'src/user/entities/user.entity';
