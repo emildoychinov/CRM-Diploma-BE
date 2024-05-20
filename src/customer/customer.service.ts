@@ -39,7 +39,6 @@ export class CustomerService {
     const { password: rawPassword, ...customerDto } = createCustomerDto;
     customerDto.client = { id: instance.client_id };
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
-    Logger.debug(JSON.stringify(customerDto));
     const customer = this.customerRepository.create({
       password: hashedPassword,
       ...customerDto,

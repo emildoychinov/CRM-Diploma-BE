@@ -18,11 +18,11 @@ spec:
           image: postgres:15
           env:
             - name: POSTGRES_USER
-              value: postgres
+              value: user
             - name: POSTGRES_PASSWORD
-              value: 3@1B3#'xk5
+              value: password
             - name: POSTGRES_DB
-              value: CRM
+              value: database
           volumeMounts:
             - name: shared-storage
               mountPath: /var/lib/postgresql/data
