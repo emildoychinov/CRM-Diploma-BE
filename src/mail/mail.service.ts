@@ -6,7 +6,6 @@ import { MailDto } from './dto/mail.dto';
 export class MailService {
   constructor(private mailerService: MailerService) {}
 
-
   //TODO : fix name 'user' in email and change it to actual first and last name
   async sendStatusUpdate(mailDto: MailDto) {
     await this.mailerService.sendMail({

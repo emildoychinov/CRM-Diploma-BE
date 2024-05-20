@@ -47,7 +47,6 @@ export class UserController {
     return this.userService.findUserByEmail(email, request.user);
   }
 
-
   @RequireSuperuser()
   @Get('/all/:client_id')
   findAllInClient(@Param('client_id') clientID: string) {

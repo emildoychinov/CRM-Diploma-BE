@@ -42,7 +42,9 @@ require('events').EventEmitter.defaultMaxListeners = 0;
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         redis: {
-          host: configService.get<string>(/*REDIS_DEPLOYMENT_HOST*/ 'REDIS_HOST'),
+          host: configService.get<string>(
+            /*REDIS_DEPLOYMENT_HOST*/ 'REDIS_HOST',
+          ),
           port: configService.get<number>('REDIS_PORT'),
         },
       }),

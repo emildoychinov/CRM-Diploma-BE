@@ -29,8 +29,10 @@ export class RolesService {
   ) {}
 
   createRole(createRoleDto: CreateRoleDto, user: any) {
-    if(createRoleDto.name === SUPERUSER){
-      throw new UnauthorizedException(`${SUPERUSER.toUpperCase()} is a reserved role name.`)
+    if (createRoleDto.name === SUPERUSER) {
+      throw new UnauthorizedException(
+        `${SUPERUSER.toUpperCase()} is a reserved role name.`,
+      );
     }
     return user.is_admin
       ? this.createRoleGlobally(createRoleDto)

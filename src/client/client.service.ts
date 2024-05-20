@@ -147,13 +147,13 @@ export class ClientService {
   async remove(id: number) {
     const client = await this.clientRepository.findOne({
       where: { id },
-        relations: ['operators', 'customers', 'roles', 'api_key'],
-      });
+      relations: ['operators', 'customers', 'roles', 'api_key'],
+    });
 
-      if (!client) {
-        throw new Error('Client not found');
-      }
+    if (!client) {
+      throw new Error('Client not found');
+    }
 
-      await this.clientRepository.remove(client);
+    await this.clientRepository.remove(client);
   }
 }

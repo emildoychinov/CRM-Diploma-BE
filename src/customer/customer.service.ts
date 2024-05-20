@@ -37,7 +37,7 @@ export class CustomerService {
 
   async register(instance: any, createCustomerDto: CreateCustomerDto) {
     const { password: rawPassword, ...customerDto } = createCustomerDto;
-    customerDto.client = {id: instance.client_id};
+    customerDto.client = { id: instance.client_id };
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     Logger.debug(JSON.stringify(customerDto));
     const customer = this.customerRepository.create({
@@ -65,7 +65,7 @@ export class CustomerService {
 
   async login(instance: any, loginCustomerDto: LoginCustomerDto) {
     try {
-      loginCustomerDto.client = {id: instance.client_id};
+      loginCustomerDto.client = { id: instance.client_id };
       const customer = await this.findByEmailAndClient(
         loginCustomerDto.email,
         loginCustomerDto.client.id as number,
