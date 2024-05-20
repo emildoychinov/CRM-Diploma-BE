@@ -24,6 +24,8 @@ import { DecoratorMetadata } from 'src/enums/decorator.enum';
 type Abilities = [string, Subject];
 export type AppAbility = MongoAbility<Abilities>;
 
+
+//TODO : faster guards ; dont query for operator everywhere...
 @Injectable()
 export class AbilityGuard implements CanActivate {
   constructor(
