@@ -103,7 +103,7 @@ export class OperatorService {
   }
 
   async findOneOperator(id: number, user: any) {
-    return user.is_admin || user.is_authorized
+    return user.is_admin
       ? this.findOne(id)
       : this.findOneInClient(id, user.client_id);
   }
