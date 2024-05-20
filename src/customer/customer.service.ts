@@ -1,6 +1,7 @@
 import {
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -34,8 +35,9 @@ export class CustomerService {
     private readonly redis: Redis,
   ) {}
 
-  async register(createCustomerDto: CreateCustomerDto) {
+  async register(instance: any, createCustomerDto: CreateCustomerDto) {
     const { password: rawPassword, ...customerDto } = createCustomerDto;
+    customerDto.client = { id: instance.client_id };
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     const customer = this.customerRepository.create({
       password: hashedPassword,
@@ -60,8 +62,9 @@ export class CustomerService {
     throw new Error('Customer with this email already registered under client');
   }
 
-  async login(loginCustomerDto: LoginCustomerDto) {
+  async login(instance: any, loginCustomerDto: LoginCustomerDto) {
     try {
+      loginCustomerDto.client = { id: instance.client_id };
       const customer = await this.findByEmailAndClient(
         loginCustomerDto.email,
         loginCustomerDto.client.id as number,

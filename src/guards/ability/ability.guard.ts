@@ -24,6 +24,8 @@ import { DecoratorMetadata } from 'src/enums/decorator.enum';
 type Abilities = [string, Subject];
 export type AppAbility = MongoAbility<Abilities>;
 
+
+//TODO : faster guards ; dont query for operator everywhere...
 @Injectable()
 export class AbilityGuard implements CanActivate {
   constructor(
@@ -73,10 +75,11 @@ export class AbilityGuard implements CanActivate {
 
     const operator = await this.operatorRepository
       .createQueryBuilder('operator')
+      .leftJoinAndSelect('operator.user', 'user')
+      .leftJoinAndSelect('operator.client', 'client')
       .leftJoinAndSelect('operator.roles', 'roles')
       .leftJoinAndSelect('roles.permissions', 'permissions')
-      .leftJoinAndSelect('operator.client', 'client')
-      .where('operator.user.id = :id', { id: user.sub })
+      .where('user.id = :id', { id: request.user.sub })
       .getOneOrFail();
 
     if (!operator?.roles || !operator?.roles?.length) {

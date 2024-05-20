@@ -17,6 +17,7 @@ import { checkAbilites } from 'src/decorators/ability/ability.decorator';
 import { UserRequest } from 'src/interfaces/requests/user.request';
 import { RequireSuperuser } from 'src/decorators/require-superuser/require-superuser.decorator';
 import { SubjectActions } from 'src/enums/subject-actions.enum';
+import { AllowUnauthorizedRequest } from 'src/decorators/allow-unauthorized-request/allow-unauthorized-request.decorator';
 
 @Controller('user')
 export class UserController {
@@ -29,6 +30,12 @@ export class UserController {
   }
 
   @checkAbilites({ action: SubjectActions.READ, subject: 'user' })
+  @Get('/all')
+  findAll(@Req() request: UserRequest) {
+    return this.userService.findUsers(request.user);
+  }
+
+  @checkAbilites({ action: SubjectActions.READ, subject: 'user' })
   @Get(':id')
   findOne(@Param('id') id: string, @Req() request: UserRequest) {
     return this.userService.findUserById(+id, request.user);
@@ -38,12 +45,6 @@ export class UserController {
   @Get()
   findByEmail(@Query('email') email: string, @Req() request: UserRequest) {
     return this.userService.findUserByEmail(email, request.user);
-  }
-
-  @checkAbilites({ action: SubjectActions.READ, subject: 'user' })
-  @Get('/all')
-  findAll(@Req() request: UserRequest) {
-    return this.userService.findUsers(request.user);
   }
 
   @RequireSuperuser()

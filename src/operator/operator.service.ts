@@ -71,6 +71,16 @@ export class OperatorService {
     });
   }
 
+  async findOneByUserId(userID: number) {
+    return this.operatorRepository
+      .createQueryBuilder('operator')
+      .leftJoinAndSelect('operator.user', 'user')
+      .leftJoinAndSelect('operator.client', 'client')
+      .leftJoinAndSelect('operator.roles', 'roles')
+      .where('user.id = :id', { id: userID })
+      .getOneOrFail();
+  }
+
   async findOne(id: number) {
     return this.operatorRepository
       .createQueryBuilder('operator')

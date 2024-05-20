@@ -26,14 +26,20 @@ export class CustomerController {
 
   @RequireApiKey()
   @Post('auth/register')
-  register(@Body() createCustomerDto: CreateCustomerDto) {
-    return this.customerService.register(createCustomerDto);
+  register(
+    @Req() request: UserRequest,
+    @Body() createCustomerDto: CreateCustomerDto,
+  ) {
+    return this.customerService.register(request.user, createCustomerDto);
   }
 
   @RequireApiKey()
   @Post('auth/login')
-  login(@Body() loginCustomerDto: LoginCustomerDto) {
-    return this.customerService.login(loginCustomerDto);
+  login(
+    @Req() request: UserRequest,
+    @Body() loginCustomerDto: LoginCustomerDto,
+  ) {
+    return this.customerService.login(request.user, loginCustomerDto);
   }
 
   @RequireApiKey()

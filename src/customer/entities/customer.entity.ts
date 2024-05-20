@@ -40,7 +40,7 @@ export class Customer {
   @Column({ nullable: true })
   notes: string;
 
-  @ManyToOne(() => Client, (client) => client.customers, { nullable: false })
+  @ManyToOne(() => Client, (client) => client.customers, { nullable: true })
   @JoinColumn({ name: 'client_id' })
   client: Client;
 }

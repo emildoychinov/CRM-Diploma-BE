@@ -144,7 +144,10 @@ export class ClientService {
     }
   }
 
+
+  //TODO : resolve constraint problems stopping client from being deleted
   remove(id: number) {
+    this.apiKeyService.deleteKey(id);
     return this.clientRepository.delete({ id });
   }
 }

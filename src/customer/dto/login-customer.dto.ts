@@ -1,4 +1,4 @@
-import { IsEmail, IsObject, IsString } from 'class-validator';
+import { IsEmail, IsObject, IsOptional, IsString } from 'class-validator';
 import { Client } from 'src/client/entities/client.entity';
 
 export class LoginCustomerDto {
@@ -8,6 +8,7 @@ export class LoginCustomerDto {
   @IsString()
   public readonly password: string;
 
+  @IsOptional()
   @IsObject()
-  public readonly client: Partial<Client>;
+  public client: Partial<Client>;
 }

@@ -41,7 +41,11 @@ export class ClientGuard implements CanActivate {
         if (!foundClient.api_key || !foundClient?.api_key.token) {
           return false;
         }
-        request.user = { ...request.user, api_key: foundClient.api_key.token };
+        request.user = {
+          ...request.user,
+          api_key: foundClient.api_key.token,
+          client_id: foundClient.id,
+        };
       }
 
       request.user = { ...request.user, client_id: foundClient.id };

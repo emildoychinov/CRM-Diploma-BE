@@ -52,7 +52,6 @@ export class UserRefreshTokenGuard implements CanActivate {
       ) {
         return false;
       }
-      console.log(user);
 
       return true;
     } catch (error) {
