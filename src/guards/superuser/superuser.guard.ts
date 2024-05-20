@@ -25,7 +25,7 @@ export class SuperuserGuard implements CanActivate {
     }
 
     try {
-      const operator = await this.operatorService.findOne(user.sub);
+      const operator = await this.operatorService.findOneByUserId(user.sub);
       if (
         operator.roles &&
         operator.roles.some((role) => {

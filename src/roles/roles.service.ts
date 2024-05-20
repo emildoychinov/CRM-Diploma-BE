@@ -28,10 +28,13 @@ export class RolesService {
     private readonly queueService: QueueService,
   ) {}
 
-  createRole(createOperatorDto: CreateRoleDto, user: any) {
+  createRole(createRoleDto: CreateRoleDto, user: any) {
+    if(createRoleDto.name === SUPERUSER){
+      throw new UnauthorizedException(`${SUPERUSER.toUpperCase()} is a reserved role name.`)
+    }
     return user.is_admin
-      ? this.createOperatorGlobally(createOperatorDto)
-      : this.createRoleInInstance(createOperatorDto, user.client_id);
+      ? this.createRoleGlobally(createRoleDto)
+      : this.createRoleInInstance(createRoleDto, user.client_id);
   }
 
   createRoleInInstance(createRoleDto: CreateRoleDto, clientID: number) {
@@ -45,7 +48,7 @@ export class RolesService {
     return this.roleRepository.save(role);
   }
 
-  createOperatorGlobally(createRoleDto: CreateRoleDto) {
+  createRoleGlobally(createRoleDto: CreateRoleDto) {
     const role = this.roleRepository.create(createRoleDto);
     return this.roleRepository.save(role);
   }

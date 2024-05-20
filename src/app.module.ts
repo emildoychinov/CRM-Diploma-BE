@@ -42,7 +42,7 @@ require('events').EventEmitter.defaultMaxListeners = 0;
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         redis: {
-          host: configService.get<string>('REDIS_HOST'),
+          host: configService.get<string>(/*REDIS_DEPLOYMENT_HOST*/ 'REDIS_HOST'),
           port: configService.get<number>('REDIS_PORT'),
         },
       }),
@@ -51,7 +51,7 @@ require('events').EventEmitter.defaultMaxListeners = 0;
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get('DB_HOST' /*'DB_DEPLOYMENT_HOST'*/),
+        host: configService.get(/*'DB_DEPLOYMENT_HOST'*/ 'DB_HOST'),
         port: configService.get<number>('DB_PORT'),
         username: configService.get<string>('DB_USER'),
         password: configService.get<string>('DB_PASSWORD'),
@@ -69,8 +69,8 @@ require('events').EventEmitter.defaultMaxListeners = 0;
       ClientApiKey,
     ]),
     ClientModule,
-    OperatorModule,
     UserModule,
+    OperatorModule,
     AuthModule,
     PermissionsModule,
     RolesModule,

@@ -6,13 +6,15 @@ import { MailDto } from './dto/mail.dto';
 export class MailService {
   constructor(private mailerService: MailerService) {}
 
+
+  //TODO : fix name 'user' in email and change it to actual first and last name
   async sendStatusUpdate(mailDto: MailDto) {
     await this.mailerService.sendMail({
       to: mailDto.receiver,
       subject: mailDto.title,
       template: './status',
       context: {
-        name: mailDto.name ?? 'user',
+        name: 'user',
         client: mailDto.client,
         reason: mailDto?.reason,
         duration: mailDto?.duration,
@@ -27,7 +29,7 @@ export class MailService {
       subject: 'Account Deletion Notification',
       template: './deactivation',
       context: {
-        name: mailDto.name ?? 'user',
+        name: 'user',
         client: mailDto.client,
       },
     });

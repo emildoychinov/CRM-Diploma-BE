@@ -20,7 +20,7 @@ export class QueueService {
             if (!client) {
               client = new Redis(
                 configService.get<string>(
-                  'REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/,
+                  /*'REDIS_DEPLOYMENT_HOST'*/ 'REDIS_HOST',
                 ) as string,
                 {
                   ...redisOpts,
@@ -34,7 +34,7 @@ export class QueueService {
             if (!subscriber) {
               subscriber = new Redis(
                 configService.get<string>(
-                  'REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/,
+                  /*'REDIS_DEPLOYMENT_HOST'*/ 'REDIS_HOST',
                 ) as string,
                 {
                   ...redisOpts,
@@ -47,7 +47,7 @@ export class QueueService {
           case 'bclient':
             return new Redis(
               configService.get<string>(
-                'REDIS_HOST' /*'REDIS_DEPLOYMENT_HOST'*/,
+                /*'REDIS_DEPLOYMENT_HOST'*/ 'REDIS_HOST',
               ) as string,
               {
                 ...redisOpts,

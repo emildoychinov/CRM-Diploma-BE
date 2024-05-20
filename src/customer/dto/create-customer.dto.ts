@@ -28,6 +28,7 @@ export class CreateCustomerDto {
   @IsOptional()
   notes: string;
 
+  @IsOptional()
   @IsObject()
-  public readonly client: Partial<Client>;
+  public client: Partial<Client>;
 }

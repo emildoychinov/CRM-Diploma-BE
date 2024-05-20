@@ -144,7 +144,16 @@ export class ClientService {
     }
   }
 
-  remove(id: number) {
-    return this.clientRepository.delete({ id });
+  async remove(id: number) {
+    const client = await this.clientRepository.findOne({
+      where: { id },
+        relations: ['operators', 'customers', 'roles', 'api_key'],
+      });
+
+      if (!client) {
+        throw new Error('Client not found');
+      }
+
+      await this.clientRepository.remove(client);
   }
 }

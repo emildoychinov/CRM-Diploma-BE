@@ -73,10 +73,11 @@ export class AbilityGuard implements CanActivate {
 
     const operator = await this.operatorRepository
       .createQueryBuilder('operator')
+      .leftJoinAndSelect('operator.user', 'user')
+      .leftJoinAndSelect('operator.client', 'client')
       .leftJoinAndSelect('operator.roles', 'roles')
       .leftJoinAndSelect('roles.permissions', 'permissions')
-      .leftJoinAndSelect('operator.client', 'client')
-      .where('operator.user.id = :id', { id: user.sub })
+      .where('user.id = :id', { id: request.user.sub })
       .getOneOrFail();
 
     if (!operator?.roles || !operator?.roles?.length) {

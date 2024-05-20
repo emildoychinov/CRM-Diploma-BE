@@ -71,6 +71,17 @@ export class OperatorService {
     });
   }
 
+
+  async findOneByUserId(userID: number){
+    return this.operatorRepository
+      .createQueryBuilder('operator')
+      .leftJoinAndSelect('operator.user', 'user')
+      .leftJoinAndSelect('operator.client', 'client')
+      .leftJoinAndSelect('operator.roles', 'roles')
+      .where('user.id = :id', { id: userID })
+      .getOneOrFail();
+  }
+  
   async findOne(id: number) {
     return this.operatorRepository
       .createQueryBuilder('operator')
@@ -93,7 +104,7 @@ export class OperatorService {
   }
 
   async findOneOperator(id: number, user: any) {
-    return user.is_admin
+    return (user.is_admin || user.is_authorized)
       ? this.findOne(id)
       : this.findOneInClient(id, user.client_id);
   }
