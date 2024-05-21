@@ -60,7 +60,7 @@ export class AuthService {
   }
 
   async refreshTokens(user: any) {
-    return this.constructUserAccessToken(user.id);
+    return this.generateTokens(user);
   }
 
   constructCostumerToken(customer: Customer) {
